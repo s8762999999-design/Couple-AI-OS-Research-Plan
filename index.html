@@ -136,8 +136,41 @@
                         <input type="range" id="a-stress" min="0" max="100" value="80" class="w-full accent-[#E2A285]" oninput="updateMetrics()">
                     </div>
                     <div class="mt-4">
-                        <label class="text-xs font-bold block mb-2 text-gray-400">當前情緒輸入模擬</label>
-                        <textarea id="input-a" class="w-full p-3 text-sm rounded-lg border-gray-200 border outline-none focus:ring-1 focus:ring-[#E2A285] h-20" placeholder="例：我今天覺得好累，但他又在念我沒洗碗..."></textarea>
+                        <label class="text-xs font-bold block mb-2 text-gray-400">當前情緒模擬 (基於臨床心理學)</label>
+                        <select id="emotion-select" class="w-full p-2 text-sm rounded-lg border border-gray-200 outline-none focus:ring-1 focus:ring-[#E2A285] bg-white" onchange="updateMetrics()">
+                            <optgroup label="🚨 關係殺手 (高特曼末日四騎士與毒性行為)">
+                                <option value="contempt" data-risk="30" data-type="danger">🙄 鄙視 (Contempt / 道德優越感)</option>
+                                <option value="criticism" data-risk="25" data-type="danger">🗣️ 批評 (Criticism / 攻擊人格特質)</option>
+                                <option value="defensiveness" data-risk="20" data-type="danger">🛡️ 防衛 (Defensiveness / 拒絕承擔責任)</option>
+                                <option value="stonewalling" data-risk="25" data-type="danger">🧱 築牆 (Stonewalling / 情感與生理撤退)</option>
+                                <option value="hostility" data-risk="28" data-type="danger">😠 敵意 (Hostility / 充滿攻擊性與惡意)</option>
+                                <option value="resentment" data-risk="25" data-type="danger">😒 怨恨 (Resentment / 長期積累的不滿)</option>
+                            </optgroup>
+                            <optgroup label="🎭 表層情緒 (EFT 次級情緒 / 防禦機制)">
+                                <option value="angry" data-risk="15" data-type="secondary">😡 憤怒 (Anger / 掩飾脆弱的防護罩)</option>
+                                <option value="exhausted" data-risk="10" data-type="secondary">😫 疲憊 (Exhaustion / 認知負荷過載)</option>
+                                <option value="irritated" data-risk="12" data-type="secondary">😤 煩躁 (Irritation / 失去耐心)</option>
+                                <option value="jealous" data-risk="18" data-type="secondary">妒 嫉妒 (Jealousy / 依附威脅警報)</option>
+                                <option value="grievance" data-risk="15" data-type="secondary">🥺 委屈 (Grievance / 感到不公或被剝奪)</option>
+                                <option value="apathy" data-risk="20" data-type="secondary">🧊 冷漠 (Apathy / 情感抽離與麻木)</option>
+                            </optgroup>
+                            <optgroup label="🫂 深層需求 (EFT 初級情緒 / 依附渴望)">
+                                <option value="vulnerable" data-risk="5" data-type="primary">🩹 脆弱 (Vulnerability / 需要安全基地)</option>
+                                <option value="anxious" data-risk="10" data-type="primary">😰 焦慮 (Anxiety / 害怕失去連結)</option>
+                                <option value="abandoned" data-risk="15" data-type="primary">🏚️ 被遺棄感 (Fear of Abandonment / 依附創傷)</option>
+                                <option value="isolated" data-risk="12" data-type="primary">🏝️ 孤立無援 (Isolation / 感覺不被理解)</option>
+                                <option value="sad" data-risk="8" data-type="primary">😢 悲傷 (Sadness / 失去或未能獲得連結)</option>
+                                <option value="insecure" data-risk="10" data-type="primary">🫣 不安 (Insecurity / 自我價值低落)</option>
+                            </optgroup>
+                            <optgroup label="✨ 關係修復 (安全依附與情感存款)">
+                                <option value="empathy" data-risk="-20" data-type="positive">🤝 同理 (Empathy / 認知與情緒共鳴)</option>
+                                <option value="appreciative" data-risk="-15" data-type="positive">🥰 欣賞 (Appreciation / 情感帳戶存款)</option>
+                                <option value="affection" data-risk="-18" data-type="positive">💕 依戀 (Affection / 強烈的愛與連結)</option>
+                                <option value="playful" data-risk="-15" data-type="positive">🥳 趣味 (Playfulness / 降低防備的修復信號)</option>
+                                <option value="calm" data-risk="-10" data-type="positive">😌 平靜 (Calm / 迷走神經調節良好)</option>
+                                <option value="trust" data-risk="-20" data-type="positive">🤝 信任 (Trust / 堅實的安全依附)</option>
+                            </optgroup>
+                        </select>
                     </div>
                 </div>
                 <button onclick="simulateA2A()" class="mt-4 w-full bg-[#4A5568] text-white py-2 rounded-lg font-bold hover:bg-gray-700 transition shadow-lg shadow-gray-200">啟動代理轉譯與對話</button>
@@ -328,6 +361,8 @@
         const bEnergy = parseInt(document.getElementById('b-energy').value);
         const bStress = parseInt(document.getElementById('b-stress').value);
         const topic = document.getElementById('topic-select').value;
+        const emotionSelect = document.getElementById('emotion-select');
+        const emotionRisk = parseInt(emotionSelect.options[emotionSelect.selectedIndex].getAttribute('data-risk')) || 0;
 
         // UI Updates for Sliders
         document.getElementById('a-energy-val').innerText = `${aEnergy}% ${aEnergy < 40 ? '(偏低)' : (aEnergy > 70 ? '(良好)' : '')}`;
@@ -346,6 +381,9 @@
         // Context modifier based on topic
         if (topic === 'finance' || topic === 'family') risk += 15; // Hard topics
         if (topic === 'date') risk -= 10; // Positive topics
+        
+        // Emotion modifier (Psychological Weight)
+        risk += emotionRisk;
         
         risk = Math.max(5, Math.min(98, Math.round(risk)));
         currentConflictRisk = risk;
@@ -369,7 +407,12 @@
     }
 
     function simulateA2A() {
-        const inputA = document.getElementById('input-a').value;
+        const emotionSelect = document.getElementById('emotion-select');
+        // Extract just the emotion name
+        const emotionText = emotionSelect.options[emotionSelect.selectedIndex].text.split(' ')[1]; 
+        const emotionVal = emotionSelect.value;
+        const emotionType = emotionSelect.options[emotionSelect.selectedIndex].getAttribute('data-type');
+        
         const topic = document.getElementById('topic-select');
         const topicText = topic.options[topic.selectedIndex].text;
         
@@ -378,45 +421,52 @@
         const bStress = parseInt(document.getElementById('b-stress').value);
         const aEnergy = parseInt(document.getElementById('a-energy').value);
 
-        if (!inputA) {
-            // Give a default simulation input if empty
-            document.getElementById('input-a').value = "我想討論一下我們這週末的時間安排...";
-        }
-
         // Reset Log
         document.getElementById('log-container').innerHTML = '';
         addLog(`===== 啟動 A2A 同步 (主題: ${topicText}) =====`, "info");
         document.getElementById('guidance-b').style.opacity = '0.5';
 
         setTimeout(() => {
-            addLog(`[Tier 1] 分析 A 狀態：壓力 ${aStress}%, 電量 ${aEnergy}%。`, "info");
+            addLog(`[Tier 1] 分析 A 狀態：壓力 ${aStress}%, 電量 ${aEnergy}%。核心情緒：${emotionText}`, "info");
             
-            if (aStress > 70) {
-                addLog("識別到 A 處於高壓狀態。啟動高特曼軟化開場 (Softened Startup) 過濾...", "warn");
+            if (emotionType === 'danger') {
+                addLog(`⚠️ 警告：偵測到高特曼「末日四騎士」(${emotionText})。啟動強制緩衝過濾機制...`, "error");
+            } else if (emotionType === 'secondary') {
+                addLog(`🔍 EFT 分析：A 表現出表層情緒 (${emotionText})，正在探勘底層依附需求...`, "warn");
+            } else if (emotionType === 'positive') {
+                addLog(`✨ 情感存款：A 狀態極佳，偵測到修復與連結意圖。`, "success");
             } else {
                 addLog("A 狀態平穩。提取核心意圖...", "success");
             }
             
             setTimeout(() => {
-                addLog(`[Tier 2] A2A 連線建立：向伴侶 B 代理發送加密狀態包...`, "info");
+                addLog(`[Tier 2] A2A 連線建立：向伴侶 B 代理發送心理狀態參數包...`, "info");
 
                 setTimeout(() => {
                     addLog(`[Tier 3] 中介者計算：當前雙方綜合衝突預測率為 ${currentConflictRisk}%。`, currentConflictRisk > 70 ? "error" : "warn");
 
-                    // Dynamic Guidance Generation based on states
+                    // Dynamic Guidance Generation based on psychological states and EFT/Gottman
                     let guidance = "";
-                    if (currentConflictRisk >= 70) {
-                         guidance = `「⚠️ 高衝突風險警告：A 試圖討論『${topicText}』，但目前雙方壓力/疲勞指數過高（預測衝突率 ${currentConflictRisk}%）。代理強烈建議：今晚暫緩此話題，改為提供靜默陪伴或點外賣，避免不必要的摩擦。」`;
-                         addLog("中介者介入：建議暫緩討論，已發送警示給 B。", "error");
-                    } else if (aStress > 70 && bStress <= 50) {
-                         guidance = `「💡 狀態提醒：A 目前處於高度疲憊狀態，且提出關於『${topicText}』的需求。您的狀態良好 (${bStress}% 壓力)，建議：主動接手今晚的家事，並使用肯定言語（A 的愛之語）給予安撫。」`;
-                         addLog("指引生成：B 狀態佳，建議 B 提供支援。", "success");
-                    } else if (aStress <= 50 && bStress > 70) {
-                         guidance = `「🛡️ 緩衝提醒：A 發起了『${topicText}』的對話，但您的壓力值較高 (${bStress}%)。代理已向 A 暗示您今天較累。建議您：溫和地回覆『我聽到了，我們明天精神好一點時好好討論好嗎？』」`;
-                         addLog("指引生成：保護 B 的邊界，建議延後討論。", "warn");
+                    
+                    if (emotionType === 'positive') {
+                         guidance = `「✨ 情感增溫：A 傳達了對您的『${emotionText}』與正向連結意圖。代理建議：給予熱情且具體的回應，這是為你們的『情感帳戶 (Love Map)』存款的絕佳時機！」`;
+                         addLog("指引生成：偵測到正向情緒，鼓勵放大情感存款。", "success");
+                    
+                    } else if (emotionType === 'danger' || currentConflictRisk >= 80) {
+                         guidance = `「🚨 高危險預測：A 目前處於高度『${emotionText}』狀態。基於高特曼理論，此時對話有 85% 機率演變為破壞性爭吵（預測衝突率 ${currentConflictRisk}%）。代理強制建議：啟動『暫停協議 (Time-out)』，至少冷卻 20 分鐘。請回覆：『我現在狀態不好，我們半小時後再談。』」`;
+                         addLog("中介者介入：偵測到關係殺手，強制建議暫停對話。", "error");
+                    
+                    } else if (emotionType === 'primary') {
+                         guidance = `「🫂 EFT 依附需求：A 表現出『${emotionText}』，這通常源自於對關係安全感的渴望。您的壓力狀態 (${bStress}%) 允許介入。代理建議：放下手邊事物，給予肢體接觸或專注的傾聽。『先連結情感，再處理問題』。」`;
+                         addLog("指引生成：基於情緒取向治療 (EFT)，建議 B 提供安全基地安撫。", "warn");
+                    
+                    } else if (emotionType === 'secondary' && aStress > 70 && bStress <= 50) {
+                         guidance = `「💡 狀態提醒：A 的『${emotionText}』往往是高認知負荷的表徵。您的狀態有餘裕，代理建議：不要針對語氣進行反擊，主動接手今晚的瑣事，或主導『${topicText}』的決策，從根本降低 A 的壓力源。」`;
+                         addLog("指引生成：B 狀態佳，建議越過表層情緒提供實質支援。", "success");
+                    
                     } else {
-                         guidance = `「✨ 溝通綠燈：A 想討論『${topicText}』。目前雙方狀態皆適合對話。建議：保持開放心態，這是一個增進關係的好時機！」`;
-                         addLog("指引生成：雙方狀態良好，鼓勵正向溝通。", "success");
+                         guidance = `「🛡️ 緩衝提醒：A 帶著『${emotionText}』的情緒想討論『${topicText}』。由於雙方目前壓力值皆不低，代理已微調 A 的預期。建議：溫和地回覆『我理解這件事很重要，但我們現在都很累，明天晚餐後再好好討論好嗎？』」`;
+                         addLog("指引生成：保護雙方邊界，建議溫和延後。", "warn");
                     }
 
                     document.getElementById('guidance-b').innerText = guidance;
@@ -428,7 +478,11 @@
                     if (healthChart) {
                          let pos = healthChart.data.datasets[0].data[0];
                          let neg = healthChart.data.datasets[0].data[1];
-                         if (currentConflictRisk > 70) neg += 2; else pos += 1;
+                         if (currentConflictRisk > 70 || emotionType === 'danger' || emotionType === 'secondary') {
+                             neg += 2; 
+                         } else {
+                             pos += 2;
+                         }
                          healthChart.data.datasets[0].data = [pos, neg];
                          healthChart.update();
                     }
