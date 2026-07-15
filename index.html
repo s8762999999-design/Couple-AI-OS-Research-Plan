@@ -42,9 +42,9 @@
         <span class="text-xl font-bold tracking-tight text-[#4A5568]">CAIOS <span class="text-xs font-light">v1.0 Beta</span></span>
     </div>
     <div class="hidden md:flex space-x-8 font-medium">
-        <button onclick="showSection('research')" id="nav-research" class="nav-link active py-1 transition-all">研究報告</button>
-        <button onclick="showSection('dashboard')" id="nav-dashboard" class="nav-link py-1 transition-all">互動儀表板</button>
-        <button onclick="showSection('roadmap')" id="nav-roadmap" class="nav-link py-1 transition-all">未來藍圖</button>
+        <a href="#research" id="nav-research" class="nav-link active py-1 transition-all hover:text-[#E2A285]">研究報告</a>
+        <a href="#dashboard" id="nav-dashboard" class="nav-link py-1 transition-all hover:text-[#E2A285]">互動儀表板</a>
+        <a href="#roadmap" id="nav-roadmap" class="nav-link py-1 transition-all hover:text-[#E2A285]">未來藍圖</a>
     </div>
 </nav>
 
@@ -258,14 +258,30 @@
 <script>
     // Navigation Logic
     function showSection(sectionId) {
+        const targetSection = document.getElementById('section-' + sectionId);
+        if (!targetSection) return;
+
         document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-        document.getElementById('section-' + sectionId).classList.remove('hidden');
+        targetSection.classList.remove('hidden');
         
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById('nav-' + sectionId).classList.add('active');
+        const targetNav = document.getElementById('nav-' + sectionId);
+        if (targetNav) targetNav.classList.add('active');
         
         if (sectionId === 'dashboard') initChart();
     }
+
+    // Handle URL hash changes for robust navigation
+    function handleHashNavigation() {
+        let hash = window.location.hash.replace('#', '');
+        if (!['research', 'dashboard', 'roadmap'].includes(hash)) {
+            hash = 'research'; // Default to research if invalid or empty
+        }
+        showSection(hash);
+    }
+
+    // Listen for hash changes (e.g. user clicks link or back button)
+    window.addEventListener('hashchange', handleHashNavigation);
 
     // Chart Initialization
     let healthChart;
@@ -425,4 +441,6 @@
     // Initialize metrics on load
     window.addEventListener('DOMContentLoaded', () => {
         updateMetrics();
+        handleHashNavigation();
     });
+</script>
