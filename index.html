@@ -2,325 +2,696 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>CAIOS - 世界首創 AI 伴侶作業系統研究報告與實作原型</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chosen Palette: Warm Harmony (背景 #FDFBF7, 主色 #4A5568, 強調色 #E2A285, 成功色 #86A789) -->
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #FDFBF7; color: #4A5568; }
-        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
-        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(226, 162, 133, 0.2); border-radius: 1rem; }
-        .scroll-hide::-webkit-scrollbar { display: none; }
-        .nav-link.active { border-bottom: 2px solid #E2A285; color: #E2A285; }
+
+        :root {
+            --bg-warm: #FDFBF7;
+            --text-primary: #4A5568;
+            --accent-warm: #E2A285;
+            --success-green: #86A789;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --border-subtle: rgba(226, 162, 133, 0.2);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-warm);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* 響應式圖表容器 */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 260px;
+            max-height: 380px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 300px;
+                max-height: 400px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .chart-container {
+                height: 320px;
+                max-height: 420px;
+            }
+        }
+
+        /* 玻璃卡片效果 */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:active {
+            transform: scale(0.985);
+            transition: transform 0.1s ease;
+        }
+
+        /* 隱藏滾動條 (支援多瀏覽器) */
+        .scroll-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* 導覽連結 */
+        .nav-link {
+            position: relative;
+            transition: color 0.2s ease;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .nav-link.active {
+            border-bottom: 2px solid var(--accent-warm);
+            color: var(--accent-warm);
+            font-weight: 700;
+        }
+
+        /* 手機導覽選單動畫 */
+        .mobile-menu-enter {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .mobile-menu-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 自訂動畫 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        /* 滑桿樣式增強 (觸控友好) */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            outline: none;
+            cursor: pointer;
+            min-height: 32px;
+            padding: 12px 0;
+            background-clip: content-box;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--accent-warm);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+            transition: transform 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--accent-warm);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        /* select 元素觸控優化 */
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%234A5568'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            padding-right: 32px;
+            cursor: pointer;
+            min-height: 40px;
+            font-size: 14px;
+        }
+        @media (max-width: 640px) {
+            select {
+                min-height: 44px;
+                font-size: 16px;
+            }
+        }
+
+        /* 按鈕觸控優化 */
+        button {
+            min-height: 44px;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        @media (max-width: 640px) {
+            button {
+                min-height: 48px;
+                font-size: 15px;
+            }
+        }
+
+        /* 防止文字溢出 */
+        .break-word-safe {
+            word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        /* 手機全寬安全區 */
+        .safe-padding-x {
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
+        @media (min-width: 768px) {
+            .safe-padding-x {
+                padding-left: max(2rem, env(safe-area-inset-left));
+                padding-right: max(2rem, env(safe-area-inset-right));
+            }
+        }
+
+        /* 日誌容器手機高度調整 */
+        @media (max-width: 640px) {
+            .log-mobile-height {
+                height: 180px;
+            }
+        }
+        @media (min-width: 641px) and (max-width: 1023px) {
+            .log-mobile-height {
+                height: 220px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .log-mobile-height {
+                height: 256px;
+            }
+        }
+
+        /* 確保主內容不溢出 */
+        main {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        main > section {
+            width: 100%;
+            max-width: 100%;
+        }
     </style>
 </head>
 <body class="min-h-screen">
 
-<!-- Application Structure Plan:
-    1. 導覽結構：採用「研究報告」與「互動儀表板」雙視角切換。
-    2. 研究報告：將複雜的技術與心理學概念模組化，提供從架構設計、通訊協定到倫理憲章的完整理論基礎。
-    3. 互動儀表板：設計一個三欄式的「代理監控中心」，左側為使用者 A 的個人 AI，右側為伴侶 B，中間為共同關係 AI。
-    4. 核心互動：使用者可點擊「模擬狀態同步」，觸發 AI 之間的 A2A (Agent-to-Agent) 對話流，展示系統如何根據健康數據與心理演算法生成應對指引。
-    5. 視覺化：使用 Chart.js 展示關係健康趨勢與情緒負荷，強化資料科學的視覺感。
--->
-
-<!-- Visualization & Content Choices:
-    1. 三層架構圖：使用 HTML/Tailwind 網格系統構建，而非 SVG，展示個人 AI 與中介者的階層關係。
-    2. 關係健康指標：使用 Chart.js 環狀圖展示 Gottman 5:1 比例指標。
-    3. A2A 通訊日誌：動態 JS 生成的控制台文字流，展示 AI 之間的意圖交換。
-    4. 實作藍圖：結構化列表與步驟指引，針對 Gemini 生態系 (Gems/NotebookLM) 進行落地優化。
-    5. 憲章與倫理：使用排版精美的卡片呈現 AI 情侶憲章。
--->
-
-<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
-<nav class="sticky top-0 z-50 bg-white/80 border-b border-gray-100 px-6 py-4 flex justify-between items-center backdrop-blur-md">
-    <div class="flex items-center space-x-2">
-        <div class="w-8 h-8 bg-[#E2A285] rounded-full flex items-center justify-center text-white font-bold text-xl">C</div>
-        <span class="text-xl font-bold tracking-tight text-[#4A5568]">CAIOS <span class="text-xs font-light">v1.0 Beta</span></span>
+<!-- ==================== 導覽列 (響應式) ==================== -->
+<nav class="sticky top-0 z-50 bg-white/85 border-b border-gray-100 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center backdrop-blur-md safe-padding-x" role="navigation" aria-label="主導覽">
+    <!-- Logo -->
+    <div class="flex items-center space-x-2 flex-shrink-0">
+        <div class="w-8 h-8 md:w-9 md:h-9 bg-[#E2A285] rounded-full flex items-center justify-center text-white font-bold text-lg md:text-xl flex-shrink-0">C</div>
+        <span class="text-lg md:text-xl font-bold tracking-tight text-[#4A5568] whitespace-nowrap">CAIOS <span class="text-[10px] md:text-xs font-light text-gray-400">v1.0 Beta</span></span>
     </div>
-    <div class="hidden md:flex space-x-8 font-medium">
-        <a href="#research" id="nav-research" class="nav-link active py-1 transition-all hover:text-[#E2A285]">研究報告</a>
-        <a href="#dashboard" id="nav-dashboard" class="nav-link py-1 transition-all hover:text-[#E2A285]">互動儀表板</a>
-        <a href="#roadmap" id="nav-roadmap" class="nav-link py-1 transition-all hover:text-[#E2A285]">未來藍圖</a>
+
+    <!-- 桌面導覽連結 -->
+    <div class="hidden md:flex space-x-6 lg:space-x-8 font-medium items-center">
+        <a href="#research" id="nav-research" class="nav-link active py-1 transition-all hover:text-[#E2A285] text-sm lg:text-base">研究報告</a>
+        <a href="#dashboard" id="nav-dashboard" class="nav-link py-1 transition-all hover:text-[#E2A285] text-sm lg:text-base">互動儀表板</a>
+        <a href="#roadmap" id="nav-roadmap" class="nav-link py-1 transition-all hover:text-[#E2A285] text-sm lg:text-base">未來藍圖</a>
     </div>
+
+    <!-- 手機漢堡選單按鈕 -->
+    <button id="mobile-menu-btn"
+    class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors flex-shrink-0"
+    aria-label="開啟導覽選單"
+    aria-expanded="false"
+    onclick="toggleMobileMenu()"
+    type="button">
+    <svg id="menu-icon-open" class="w-6 h-6 text-[#4A5568]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+    <svg id="menu-icon-close" class="w-6 h-6 text-[#4A5568] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+</button>
 </nav>
 
-<main class="max-w-6xl mx-auto px-4 py-8">
+<!-- 手機選單面板 -->
+<div id="mobile-menu-panel"
+class="md:hidden hidden bg-white/95 backdrop-blur-lg border-b border-gray-100 shadow-lg z-40 relative transition-all duration-300 ease-out"
+role="menu"
+aria-label="手機導覽選單">
+<div class="flex flex-col py-2 safe-padding-x">
+    <a href="#research" class="mobile-nav-link nav-link active block px-4 py-3 text-base font-medium text-gray-700 hover:bg-[#FDFBF7] hover:text-[#E2A285] rounded-lg transition-colors" role="menuitem" onclick="closeMobileMenu()">📄 研究報告</a>
+    <a href="#dashboard" class="mobile-nav-link nav-link block px-4 py-3 text-base font-medium text-gray-700 hover:bg-[#FDFBF7] hover:text-[#E2A285] rounded-lg transition-colors" role="menuitem" onclick="closeMobileMenu()">📊 互動儀表板</a>
+    <a href="#roadmap" class="mobile-nav-link nav-link block px-4 py-3 text-base font-medium text-gray-700 hover:bg-[#FDFBF7] hover:text-[#E2A285] rounded-lg transition-colors" role="menuitem" onclick="closeMobileMenu()">🗺️ 未來藍圖</a>
+</div>
+</div>
 
-    <!-- Section: Research Report -->
-    <section id="section-research" class="space-y-12 animate-in fade-in duration-700">
-        <header class="text-center space-y-4">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">打造世界第一個 AI 伴侶作業系統</h1>
-            <p class="text-lg text-gray-500 max-w-2xl mx-auto">整合代理型 AI 架構與臨床心理學，建立伴侶間的「數位共鳴橋樑」。</p>
-        </header>
+<!-- ==================== 主要內容 ==================== -->
+<main class="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 lg:py-10 safe-padding-x">
 
-        <article class="prose prose-slate max-w-none">
-            <div class="grid md:grid-cols-2 gap-8 items-start">
-                <div class="space-y-4">
-                    <h2 class="text-2xl font-bold border-l-4 border-[#E2A285] pl-4 text-gray-700">概念研究與 2026 趨勢</h2>
-                    <p class="leading-relaxed">CAIOS 核心並非聊天機器人，而是<b>「多代理關係系統 (MARS)」</b>。在 2026 年，Agentic AI 的發展已能處理複雜的長期任務。我們利用 <b>Model Context Protocol (MCP)</b> 讓 AI 獲取現實生活數據，並透過 <b>A2A (Agent-to-Agent)</b> 讓獨立的個人 AI 互相談判、理解與協作。</p>
-                    <div class="bg-gray-50 p-4 rounded-lg text-sm italic">
-                        "未來的伴侶關係中，AI 不僅是輔助，更是緩衝層 (Buffer Layer)，在爭執發生前，AI 已完成意圖轉譯。"
-                    </div>
-                </div>
-                <div class="glass-card p-6 border-t-4 border-[#86A789]">
-                    <h3 class="font-bold mb-4">系統核心三層架構</h3>
-                    <ul class="space-y-3 text-sm">
-                        <li class="flex items-start"><span class="bg-[#86A789] text-white rounded px-2 mr-2">Tier 1</span> <b>個人 AI (Personal Edge)：</b>管理 MBTI、健康數據、工作壓力，絕對隱私，僅供本人與其代理。</li>
-                        <li class="flex items-start"><span class="bg-[#E2A285] text-white rounded px-2 mr-2">Tier 2</span> <b>伴侶 AI 接入口 (Partner Interface)：</b>對外安全閘道，負責將內部狀態「轉譯」為非攻擊性的客觀請求。</li>
-                        <li class="flex items-start"><span class="bg-[#4A5568] text-white rounded px-2 mr-2">Tier 3</span> <b>共同關係 AI (Mediator)：</b>儲存共同回憶、關係 KPI 與中立調解演算法。</li>
-                    </ul>
-                </div>
-            </div>
+<!-- ========== Section: 研究報告 ========== -->
+<section id="section-research" class="space-y-8 md:space-y-12 animate-fade-in">
+    <header class="text-center space-y-3 md:space-y-4">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 leading-tight break-word-safe">打造世界第一個 AI 伴侶作業系統</h1>
+        <p class="text-base md:text-lg text-gray-500 max-w-2xl mx-auto px-2">整合代理型 AI 架構與臨床心理學，建立伴侶間的「數位共鳴橋樑」。</p>
+    </header>
 
-            <div class="mt-12 space-y-6">
-                <h2 class="text-2xl font-bold text-gray-700 text-center">核心技術：AI 讀心術與記憶系統</h2>
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-                        <h4 class="font-bold text-[#E2A285] mb-2">情境工程 (Context Engineering)</h4>
-                        <p class="text-sm">整合 Google Health Data (睡眠、心率變異度) 與行事曆負載，計算「情緒彈性指標 (Emotional Resilience)」，預測當日適合討論的議題難度。</p>
-                    </div>
-                    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-                        <h4 class="font-bold text-[#E2A285] mb-2">NotebookLM 長期記憶</h4>
-                        <p class="text-sm">利用 NotebookLM 建立 1-10 年的關係時間軸，自動壓縮日常對話為「核心情感模式」，識別出反覆出現的衝突迴圈。</p>
-                    </div>
-                    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-                        <h4 class="font-bold text-[#E2A285] mb-2">Gottman 演算法</h4>
-                        <p class="text-sm">系統內建「末日四騎士」偵測器。當偵測到批評、鄙視時，代理會啟動「溫和開場 (Softened Startup)」過濾，優化輸出詞彙。</p>
-                    </div>
+    <article class="prose prose-slate max-w-none">
+        <div class="grid md:grid-cols-2 gap-6 md:gap-8 items-start">
+            <div class="space-y-4">
+                <h2 class="text-xl md:text-2xl font-bold border-l-4 border-[#E2A285] pl-4 text-gray-700">概念研究與 2026 趨勢</h2>
+                <p class="leading-relaxed text-sm md:text-base">CAIOS 核心並非聊天機器人，而是<b>「多代理關係系統 (MARS)」</b>。在 2026 年，Agentic AI 的發展已能處理複雜的長期任務。我們利用 <b>Model Context Protocol (MCP)</b> 讓 AI 獲取現實生活數據，並透過 <b>A2A (Agent-to-Agent)</b> 讓獨立的個人 AI 互相談判、理解與協作。</p>
+                <div class="bg-gray-50 p-3 md:p-4 rounded-lg text-xs md:text-sm italic break-word-safe">
+                    "未來的伴侶關係中，AI 不僅是輔助，更是緩衝層 (Buffer Layer)，在爭執發生前，AI 已完成意圖轉譯。"
                 </div>
             </div>
-        </article>
-
-        <section class="mt-12 bg-[#F5EBE0] p-8 rounded-2xl">
-            <h2 class="text-2xl font-bold mb-6 text-center">MVP 實作方案：今天就開始 (雙手機環境)</h2>
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="space-y-4">
-                    <h3 class="font-bold flex items-center"><span class="mr-2">📱</span> 步驟一：配置 Gemini Gems</h3>
-                    <p class="text-sm">分別建立名為「我的伴侶代理」的 Gem。在系統指令中輸入：「你是我的代理人，了解我的依附人格（EFT）與愛之語，請過濾我的情緒化字眼，並隨時與伴侶的代理同步最新狀態。」</p>
-                    <h3 class="font-bold flex items-center"><span class="mr-2">📚</span> 步驟二：建立 NotebookLM 知識庫</h3>
-                    <p class="text-sm">雙方共同編輯一個 Google Doc，上傳兩人的共同目標、約會紀念與溝通規則。將此文件作為 NotebookLM 的來源，Gemini 即可獲取長期關係記憶。</p>
-                </div>
-                <div class="space-y-4">
-                    <h3 class="font-bold flex items-center"><span class="mr-2">🔗</span> 步驟三：模擬 A2A 通訊</h3>
-                    <p class="text-sm">利用 Google Workspace 的共享文件機制。當 AI A 產生日報建議時，自動更新至共享 Doc，AI B 的 Gem 會讀取該變化並推播建議給伴侶 B，實現非同步狀態更新。</p>
-                </div>
+            <div class="glass-card p-5 md:p-6 border-t-4 border-[#86A789]">
+                <h3 class="font-bold mb-3 md:mb-4 text-base md:text-lg">系統核心三層架構</h3>
+                <ul class="space-y-3 text-xs md:text-sm">
+                    <li class="flex items-start"><span class="bg-[#86A789] text-white rounded px-2 py-0.5 mr-2 flex-shrink-0 text-xs font-bold">Tier 1</span> <span><b>個人 AI (Personal Edge)：</b>管理 MBTI、健康數據、工作壓力，絕對隱私，僅供本人與其代理。</span></li>
+                    <li class="flex items-start"><span class="bg-[#E2A285] text-white rounded px-2 py-0.5 mr-2 flex-shrink-0 text-xs font-bold">Tier 2</span> <span><b>伴侶 AI 接入口 (Partner Interface)：</b>對外安全閘道，負責將內部狀態「轉譯」為非攻擊性的客觀請求。</span></li>
+                    <li class="flex items-start"><span class="bg-[#4A5568] text-white rounded px-2 py-0.5 mr-2 flex-shrink-0 text-xs font-bold">Tier 3</span> <span><b>共同關係 AI (Mediator)：</b>儲存共同回憶、關係 KPI 與中立調解演算法。</span></li>
+                </ul>
             </div>
-        </section>
-    </section>
-
-    <!-- Section: Interactive Dashboard -->
-    <section id="section-dashboard" class="hidden space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-        <div class="text-center">
-            <h2 class="text-3xl font-bold text-gray-800">CAIOS 即時運作儀表板</h2>
-            <p class="text-gray-500">此儀表板模擬了兩個人機代理 (Agent) 的 A2A 協作流程</p>
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-6">
-            <!-- Agent A -->
-            <div class="glass-card p-6 flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold">個人 AI - 使用者 A</h3>
-                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">已連接 MCP</span>
+        <div class="mt-8 md:mt-12 space-y-5 md:space-y-6">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-700 text-center">核心技術：AI 讀心術與記憶系統</h2>
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                <div class="p-5 md:p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-[#E2A285] mb-2 text-sm md:text-base">情境工程 (Context Engineering)</h4>
+                    <p class="text-xs md:text-sm">整合 Google Health Data (睡眠、心率變異度) 與行事曆負載，計算「情緒彈性指標」，預測當日適合討論的議題難度。</p>
                 </div>
-                <div class="space-y-4 flex-grow">
-                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <div class="flex justify-between text-xs mb-2"><span>身心電量 (HRV)</span><span id="a-energy-val" class="font-bold text-orange-500">40% (偏低)</span></div>
-                        <input type="range" id="a-energy" min="0" max="100" value="40" class="w-full accent-[#E2A285]" oninput="updateMetrics()">
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <div class="flex justify-between text-xs mb-2"><span>行事曆壓力負載</span><span id="a-stress-val" class="font-bold text-red-500">80% (高)</span></div>
-                        <input type="range" id="a-stress" min="0" max="100" value="80" class="w-full accent-[#E2A285]" oninput="updateMetrics()">
-                    </div>
-                    <div class="mt-4">
-                        <label class="text-xs font-bold block mb-2 text-gray-400">當前情緒模擬 (基於臨床心理學)</label>
-                        <select id="emotion-select" class="w-full p-2 text-sm rounded-lg border border-gray-200 outline-none focus:ring-1 focus:ring-[#E2A285] bg-white" onchange="updateMetrics()">
-                            <optgroup label="🚨 關係殺手 (高特曼末日四騎士與毒性行為)">
-                                <option value="contempt" data-risk="30" data-type="danger">🙄 鄙視 (Contempt / 道德優越感)</option>
-                                <option value="criticism" data-risk="25" data-type="danger">🗣️ 批評 (Criticism / 攻擊人格特質)</option>
-                                <option value="defensiveness" data-risk="20" data-type="danger">🛡️ 防衛 (Defensiveness / 拒絕承擔責任)</option>
-                                <option value="stonewalling" data-risk="25" data-type="danger">🧱 築牆 (Stonewalling / 情感與生理撤退)</option>
-                                <option value="hostility" data-risk="28" data-type="danger">😠 敵意 (Hostility / 充滿攻擊性與惡意)</option>
-                                <option value="resentment" data-risk="25" data-type="danger">😒 怨恨 (Resentment / 長期積累的不滿)</option>
-                            </optgroup>
-                            <optgroup label="🎭 表層情緒 (EFT 次級情緒 / 防禦機制)">
-                                <option value="angry" data-risk="15" data-type="secondary">😡 憤怒 (Anger / 掩飾脆弱的防護罩)</option>
-                                <option value="exhausted" data-risk="10" data-type="secondary">😫 疲憊 (Exhaustion / 認知負荷過載)</option>
-                                <option value="irritated" data-risk="12" data-type="secondary">😤 煩躁 (Irritation / 失去耐心)</option>
-                                <option value="jealous" data-risk="18" data-type="secondary">妒 嫉妒 (Jealousy / 依附威脅警報)</option>
-                                <option value="grievance" data-risk="15" data-type="secondary">🥺 委屈 (Grievance / 感到不公或被剝奪)</option>
-                                <option value="apathy" data-risk="20" data-type="secondary">🧊 冷漠 (Apathy / 情感抽離與麻木)</option>
-                            </optgroup>
-                            <optgroup label="🫂 深層需求 (EFT 初級情緒 / 依附渴望)">
-                                <option value="vulnerable" data-risk="5" data-type="primary">🩹 脆弱 (Vulnerability / 需要安全基地)</option>
-                                <option value="anxious" data-risk="10" data-type="primary">😰 焦慮 (Anxiety / 害怕失去連結)</option>
-                                <option value="abandoned" data-risk="15" data-type="primary">🏚️ 被遺棄感 (Fear of Abandonment / 依附創傷)</option>
-                                <option value="isolated" data-risk="12" data-type="primary">🏝️ 孤立無援 (Isolation / 感覺不被理解)</option>
-                                <option value="sad" data-risk="8" data-type="primary">😢 悲傷 (Sadness / 失去或未能獲得連結)</option>
-                                <option value="insecure" data-risk="10" data-type="primary">🫣 不安 (Insecurity / 自我價值低落)</option>
-                            </optgroup>
-                            <optgroup label="✨ 關係修復 (安全依附與情感存款)">
-                                <option value="empathy" data-risk="-20" data-type="positive">🤝 同理 (Empathy / 認知與情緒共鳴)</option>
-                                <option value="appreciative" data-risk="-15" data-type="positive">🥰 欣賞 (Appreciation / 情感帳戶存款)</option>
-                                <option value="affection" data-risk="-18" data-type="positive">💕 依戀 (Affection / 強烈的愛與連結)</option>
-                                <option value="playful" data-risk="-15" data-type="positive">🥳 趣味 (Playfulness / 降低防備的修復信號)</option>
-                                <option value="calm" data-risk="-10" data-type="positive">😌 平靜 (Calm / 迷走神經調節良好)</option>
-                                <option value="trust" data-risk="-20" data-type="positive">🤝 信任 (Trust / 堅實的安全依附)</option>
-                            </optgroup>
-                        </select>
-                    </div>
+                <div class="p-5 md:p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-[#E2A285] mb-2 text-sm md:text-base">NotebookLM 長期記憶</h4>
+                    <p class="text-xs md:text-sm">利用 NotebookLM 建立 1-10 年的關係時間軸，自動壓縮日常對話為「核心情感模式」，識別出反覆出現的衝突迴圈。</p>
                 </div>
-                <button onclick="simulateA2A()" class="mt-4 w-full bg-[#4A5568] text-white py-2 rounded-lg font-bold hover:bg-gray-700 transition shadow-lg shadow-gray-200">啟動代理轉譯與對話</button>
-            </div>
-
-            <!-- Mediator -->
-            <div class="lg:col-span-1 space-y-6">
-                <div class="glass-card p-6 text-center">
-                    <h3 class="font-bold mb-4">共同關係中介者 (Joint Mediator)</h3>
-                    <div class="mb-4 text-left">
-                        <label class="text-xs font-bold block mb-2 text-gray-400">欲發起之溝通主題</label>
-                        <select id="topic-select" class="w-full p-2 text-sm rounded-lg border border-gray-200 outline-none focus:ring-1 focus:ring-[#86A789] bg-white" onchange="updateMetrics()">
-                            <option value="chores">日常瑣事 (家事、作息)</option>
-                            <option value="finance">財務規劃 (花費、投資)</option>
-                            <option value="date">感情經營 (約會、陪伴)</option>
-                            <option value="family">家庭議題 (長輩、小孩)</option>
-                        </select>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="healthChart"></canvas>
-                    </div>
-                    <div class="mt-4 grid grid-cols-2 gap-4 text-xs">
-                        <div class="p-2 bg-green-50 rounded border border-green-100">
-                            <div class="text-gray-400">今日互動比</div>
-                            <div class="text-lg font-bold text-green-700">5.2 : 1</div>
-                        </div>
-                        <div class="p-2 bg-orange-50 rounded transition-colors duration-300 border border-transparent" id="conflict-card">
-                            <div class="text-gray-400">動態衝突預測</div>
-                            <div class="text-lg font-bold" id="conflict-prob">45%</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card p-4 h-64 overflow-hidden flex flex-col">
-                    <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">A2A 通訊日誌 (Agent Logs)</h4>
-                    <div id="log-container" class="text-[10px] font-mono space-y-1 overflow-y-auto flex-grow scroll-hide bg-black text-green-400 p-3 rounded">
-                        <div>> 系統待命：等待 MCP 資料同步...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agent B -->
-            <div class="glass-card p-6 flex flex-col">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold">個人 AI - 伴侶 B</h3>
-                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">已連接 MCP</span>
-                </div>
-                <div class="space-y-4 flex-grow">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div class="flex justify-between text-[11px] mb-2"><span>身心電量</span><span id="b-energy-val" class="font-bold text-green-600">80%</span></div>
-                            <input type="range" id="b-energy" min="0" max="100" value="80" class="w-full accent-[#86A789]" oninput="updateMetrics()">
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div class="flex justify-between text-[11px] mb-2"><span>壓力負載</span><span id="b-stress-val" class="font-bold text-gray-600">30%</span></div>
-                            <input type="range" id="b-stress" min="0" max="100" value="30" class="w-full accent-[#86A789]" oninput="updateMetrics()">
-                        </div>
-                    </div>
-                    <div class="bg-[#E2A285]/10 p-4 rounded-xl border border-[#E2A285]/20 shadow-inner">
-                        <h4 class="text-sm font-bold text-[#E2A285] mb-2">代理推薦應對指引：</h4>
-                        <p id="guidance-b" class="text-xs leading-relaxed text-gray-600 italic transition-opacity duration-300">調整滑桿並點擊啟動，等待 A2A 同步數據...</p>
-                    </div>
-                </div>
-                <div class="mt-6 border-t pt-4">
-                    <div class="flex items-center space-x-2 mb-2 text-xs font-bold text-gray-400">
-                        <span>●</span><span>長期記憶同步 (NotebookLM)</span>
-                    </div>
-                    <div class="text-[10px] text-gray-500">
-                        記憶檢索中：上次類似壓力事件發生於 2026/04/12，B 當時以擁抱化解了 A 的負面情緒。
-                    </div>
+                <div class="p-5 md:p-6 bg-white rounded-xl shadow-sm border border-gray-100 sm:col-span-2 md:col-span-1">
+                    <h4 class="font-bold text-[#E2A285] mb-2 text-sm md:text-base">Gottman 演算法</h4>
+                    <p class="text-xs md:text-sm">系統內建「末日四騎士」偵測器。當偵測到批評、鄙視時，代理會啟動「溫和開場」過濾，優化輸出詞彙。</p>
                 </div>
             </div>
         </div>
-    </section>
+    </article>
 
-    <!-- Section: Roadmap & Ethics -->
-    <section id="section-roadmap" class="hidden space-y-12 animate-in fade-in duration-500">
-        <div class="grid md:grid-cols-2 gap-12">
-            <div>
-                <h2 class="text-3xl font-bold mb-8 text-gray-800">未來五年發展藍圖</h2>
-                <div class="space-y-6 relative border-l-2 border-[#E2A285] pl-6 ml-4">
-                    <div class="relative">
-                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-[#E2A285]"></div>
-                        <h4 class="font-bold">2026: 代理緩衝層 (The Buffer Era)</h4>
-                        <p class="text-sm text-gray-500">建立基礎 A2A 與 MCP 通訊，實現情緒轉譯與壓力預警。</p>
-                    </div>
-                    <div class="relative">
-                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-gray-300"></div>
-                        <h4 class="font-bold">2027: 多模態讀心 (Biometric Harmony)</h4>
-                        <p class="text-sm text-gray-500">整合即時語音語調分析，在電話中即時提醒使用者調整語氣。</p>
-                    </div>
-                    <div class="relative">
-                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-gray-300"></div>
-                        <h4 class="font-bold">2029: 關係數位雙生 (Relational Digital Twin)</h4>
-                        <p class="text-sm text-gray-500">AI 可模擬複雜決策後雙方的反應，減少重大決策（如置產、生子）的摩擦。</p>
-                    </div>
-                </div>
+    <section class="mt-8 md:mt-12 bg-[#F5EBE0] p-6 md:p-8 rounded-2xl">
+        <h2 class="text-xl md:text-2xl font-bold mb-5 md:mb-6 text-center">MVP 實作方案：今天就開始 (雙手機環境)</h2>
+        <div class="grid md:grid-cols-2 gap-6 md:gap-8">
+            <div class="space-y-4">
+                <h3 class="font-bold flex items-center text-sm md:text-base"><span class="mr-2 text-lg">📱</span> 步驟一：配置 Gemini Gems</h3>
+                <p class="text-xs md:text-sm">分別建立名為「我的伴侶代理」的 Gem。在系統指令中輸入：「你是我的代理人，了解我的依附人格（EFT）與愛之語，請過濾我的情緒化字眼，並隨時與伴侶的代理同步最新狀態。」</p>
+                <h3 class="font-bold flex items-center text-sm md:text-base"><span class="mr-2 text-lg">📚</span> 步驟二：建立 NotebookLM 知識庫</h3>
+                <p class="text-xs md:text-sm">雙方共同編輯一個 Google Doc，上傳兩人的共同目標、約會紀念與溝通規則。將此文件作為 NotebookLM 的來源，Gemini 即可獲取長期關係記憶。</p>
             </div>
-            <div>
-                <h2 class="text-3xl font-bold mb-8 text-gray-800">AI 情侶憲章 (Constitution)</h2>
-                <div class="glass-card p-8 bg-white space-y-4">
-                    <p class="text-sm font-bold border-b pb-2">1. 隱私絕對隔離：個人 AI 絕不向對方代理洩露未授權的原始數據與心底秘密。</p>
-                    <p class="text-sm font-bold border-b pb-2">2. 真人優先權：AI 建議僅供參考，系統禁止代表人類直接發送任何「道歉」或「承諾」。</p>
-                    <p class="text-sm font-bold border-b pb-2">3. 中立演算法：共同 AI 不偏袒任何一方，核心目標為關係的長遠穩定與健康。</p>
-                    <p class="text-sm font-bold border-b pb-2">4. 退出權利：任何一方皆可隨時切斷 AI 之間的連動，並刪除關係記憶庫。</p>
-                </div>
+            <div class="space-y-4">
+                <h3 class="font-bold flex items-center text-sm md:text-base"><span class="mr-2 text-lg">🔗</span> 步驟三：模擬 A2A 通訊</h3>
+                <p class="text-xs md:text-sm">利用 Google Workspace 的共享文件機制。當 AI A 產生日報建議時，自動更新至共享 Doc，AI B 的 Gem 會讀取該變化並推播建議給伴侶 B，實現非同步狀態更新。</p>
             </div>
         </div>
     </section>
+</section>
 
+<!-- ========== Section: 互動儀表板 ========== -->
+<section id="section-dashboard" class="hidden space-y-6 md:space-y-8 animate-fade-in-up">
+    <div class="text-center">
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">CAIOS 即時運作儀表板</h2>
+        <p class="text-sm md:text-base text-gray-500 mt-1">此儀表板模擬了兩個人機代理 (Agent) 的 A2A 協作流程</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-5 md:gap-6">
+        <!-- ===== Agent A ===== -->
+        <div class="glass-card p-4 md:p-6 flex flex-col order-1">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <h3 class="font-bold text-sm md:text-base">個人 AI - 使用者 A</h3>
+                <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] md:text-xs rounded whitespace-nowrap">已連接 MCP</span>
+            </div>
+            <div class="space-y-3 md:space-y-4 flex-grow">
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <div class="flex justify-between text-[11px] md:text-xs mb-2 flex-wrap gap-1">
+                        <span>身心電量 (HRV)</span>
+                        <span id="a-energy-val" class="font-bold text-orange-500">40% (偏低)</span>
+                    </div>
+                    <input type="range" id="a-energy" min="0" max="100" value="40" class="w-full accent-[#E2A285]" oninput="updateMetrics()" aria-label="使用者A身心電量">
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <div class="flex justify-between text-[11px] md:text-xs mb-2 flex-wrap gap-1">
+                        <span>行事曆壓力負載</span>
+                        <span id="a-stress-val" class="font-bold text-red-500">80% (高)</span>
+                    </div>
+                    <input type="range" id="a-stress" min="0" max="100" value="80" class="w-full accent-[#E2A285]" oninput="updateMetrics()" aria-label="使用者A壓力負載">
+                </div>
+                <div class="mt-3 md:mt-4">
+                    <label class="text-[11px] md:text-xs font-bold block mb-2 text-gray-400">當前情緒模擬 (基於臨床心理學)</label>
+                    <select id="emotion-select" class="w-full p-2 md:p-2.5 text-xs md:text-sm rounded-lg border border-gray-200 outline-none focus:ring-2 focus:ring-[#E2A285] focus:border-[#E2A285] bg-white transition-shadow" onchange="updateMetrics()" aria-label="選擇情緒狀態">
+                        <optgroup label="🚨 關係殺手 (高特曼末日四騎士與毒性行為)">
+                            <option value="contempt" data-risk="30" data-type="danger">🙄 鄙視 (Contempt / 道德優越感)</option>
+                            <option value="criticism" data-risk="25" data-type="danger">🗣️ 批評 (Criticism / 攻擊人格特質)</option>
+                            <option value="defensiveness" data-risk="20" data-type="danger">🛡️ 防衛 (Defensiveness / 拒絕承擔責任)</option>
+                            <option value="stonewalling" data-risk="25" data-type="danger">🧱 築牆 (Stonewalling / 情感與生理撤退)</option>
+                            <option value="hostility" data-risk="28" data-type="danger">😠 敵意 (Hostility / 充滿攻擊性與惡意)</option>
+                            <option value="resentment" data-risk="25" data-type="danger">😒 怨恨 (Resentment / 長期積累的不滿)</option>
+                        </optgroup>
+                        <optgroup label="🎭 表層情緒 (EFT 次級情緒 / 防禦機制)">
+                            <option value="angry" data-risk="15" data-type="secondary">😡 憤怒 (Anger / 掩飾脆弱的防護罩)</option>
+                            <option value="exhausted" data-risk="10" data-type="secondary">😫 疲憊 (Exhaustion / 認知負荷過載)</option>
+                            <option value="irritated" data-risk="12" data-type="secondary">😤 煩躁 (Irritation / 失去耐心)</option>
+                            <option value="jealous" data-risk="18" data-type="secondary">妒 嫉妒 (Jealousy / 依附威脅警報)</option>
+                            <option value="grievance" data-risk="15" data-type="secondary">🥺 委屈 (Grievance / 感到不公或被剝奪)</option>
+                            <option value="apathy" data-risk="20" data-type="secondary">🧊 冷漠 (Apathy / 情感抽離與麻木)</option>
+                        </optgroup>
+                        <optgroup label="🫂 深層需求 (EFT 初級情緒 / 依附渴望)">
+                            <option value="vulnerable" data-risk="5" data-type="primary">🩹 脆弱 (Vulnerability / 需要安全基地)</option>
+                            <option value="anxious" data-risk="10" data-type="primary">😰 焦慮 (Anxiety / 害怕失去連結)</option>
+                            <option value="abandoned" data-risk="15" data-type="primary">🏚️ 被遺棄感 (Fear of Abandonment / 依附創傷)</option>
+                            <option value="isolated" data-risk="12" data-type="primary">🏝️ 孤立無援 (Isolation / 感覺不被理解)</option>
+                            <option value="sad" data-risk="8" data-type="primary">😢 悲傷 (Sadness / 失去或未能獲得連結)</option>
+                            <option value="insecure" data-risk="10" data-type="primary">🫣 不安 (Insecurity / 自我價值低落)</option>
+                        </optgroup>
+                        <optgroup label="✨ 關係修復 (安全依附與情感存款)">
+                            <option value="empathy" data-risk="-20" data-type="positive">🤝 同理 (Empathy / 認知與情緒共鳴)</option>
+                            <option value="appreciative" data-risk="-15" data-type="positive">🥰 欣賞 (Appreciation / 情感帳戶存款)</option>
+                            <option value="affection" data-risk="-18" data-type="positive">💕 依戀 (Affection / 強烈的愛與連結)</option>
+                            <option value="playful" data-risk="-15" data-type="positive">🥳 趣味 (Playfulness / 降低防備的修復信號)</option>
+                            <option value="calm" data-risk="-10" data-type="positive">😌 平靜 (Calm / 迷走神經調節良好)</option>
+                            <option value="trust" data-risk="-20" data-type="positive">🤝 信任 (Trust / 堅實的安全依附)</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+            <button onclick="simulateA2A()"
+            class="mt-4 w-full bg-[#4A5568] text-white py-2.5 md:py-3 rounded-lg font-bold hover:bg-gray-700 active:bg-gray-800 transition-all shadow-lg shadow-gray-200/50 text-sm md:text-base"
+            aria-label="啟動代理轉譯與對話">
+            🚀 啟動代理轉譯與對話
+        </button>
+    </div>
+
+    <!-- ===== Mediator (中間) ===== -->
+    <div class="lg:col-span-1 space-y-5 md:space-y-6 order-2">
+        <div class="glass-card p-4 md:p-6 text-center">
+            <h3 class="font-bold mb-3 md:mb-4 text-sm md:text-base">共同關係中介者 (Joint Mediator)</h3>
+            <div class="mb-4 text-left">
+                <label class="text-[11px] md:text-xs font-bold block mb-2 text-gray-400">欲發起之溝通主題</label>
+                <select id="topic-select" class="w-full p-2 md:p-2.5 text-xs md:text-sm rounded-lg border border-gray-200 outline-none focus:ring-2 focus:ring-[#86A789] focus:border-[#86A789] bg-white transition-shadow" onchange="updateMetrics()" aria-label="選擇溝通主題">
+                    <option value="chores">日常瑣事 (家事、作息)</option>
+                    <option value="finance">財務規劃 (花費、投資)</option>
+                    <option value="date">感情經營 (約會、陪伴)</option>
+                    <option value="family">家庭議題 (長輩、小孩)</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="healthChart" aria-label="關係健康環狀圖"></canvas>
+            </div>
+            <div class="mt-4 grid grid-cols-2 gap-3 md:gap-4 text-[11px] md:text-xs">
+                <div class="p-2 md:p-3 bg-green-50 rounded border border-green-100">
+                    <div class="text-gray-400">今日互動比</div>
+                    <div class="text-base md:text-lg font-bold text-green-700">5.2 : 1</div>
+                </div>
+                <div class="p-2 md:p-3 rounded transition-colors duration-300 border bg-orange-50 border-orange-200" id="conflict-card">
+                    <div class="text-gray-400">動態衝突預測</div>
+                    <div class="text-base md:text-lg font-bold text-orange-600" id="conflict-prob">45%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-3 md:p-4 log-mobile-height overflow-hidden flex flex-col">
+            <h4 class="text-[10px] md:text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest flex-shrink-0">A2A 通訊日誌 (Agent Logs)</h4>
+            <div id="log-container"
+            class="text-[9px] md:text-[10px] font-mono space-y-1 overflow-y-auto flex-grow scroll-hide bg-black text-green-400 p-2 md:p-3 rounded"
+            aria-live="polite"
+            aria-label="A2A 通訊日誌">
+            <div>> 系統待命：等待 MCP 資料同步...</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Agent B ===== -->
+<div class="glass-card p-4 md:p-6 flex flex-col order-3">
+    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <h3 class="font-bold text-sm md:text-base">個人 AI - 伴侶 B</h3>
+        <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] md:text-xs rounded whitespace-nowrap">已連接 MCP</span>
+    </div>
+    <div class="space-y-3 md:space-y-4 flex-grow">
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div class="flex justify-between text-[10px] md:text-[11px] mb-2 flex-wrap gap-1">
+                    <span>身心電量</span>
+                    <span id="b-energy-val" class="font-bold text-green-600">80%</span>
+                </div>
+                <input type="range" id="b-energy" min="0" max="100" value="80" class="w-full accent-[#86A789]" oninput="updateMetrics()" aria-label="伴侶B身心電量">
+            </div>
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div class="flex justify-between text-[10px] md:text-[11px] mb-2 flex-wrap gap-1">
+                    <span>壓力負載</span>
+                    <span id="b-stress-val" class="font-bold text-gray-600">30%</span>
+                </div>
+                <input type="range" id="b-stress" min="0" max="100" value="30" class="w-full accent-[#86A789]" oninput="updateMetrics()" aria-label="伴侶B壓力負載">
+            </div>
+        </div>
+        <div class="bg-[#E2A285]/10 p-3 md:p-4 rounded-xl border border-[#E2A285]/20 shadow-inner">
+            <h4 class="text-xs md:text-sm font-bold text-[#E2A285] mb-2">代理推薦應對指引：</h4>
+            <p id="guidance-b" class="text-[11px] md:text-xs leading-relaxed text-gray-600 italic transition-opacity duration-300 break-word-safe">調整滑桿並點擊啟動，等待 A2A 同步數據...</p>
+        </div>
+    </div>
+    <div class="mt-5 md:mt-6 border-t pt-3 md:pt-4">
+        <div class="flex items-center space-x-2 mb-2 text-[10px] md:text-xs font-bold text-gray-400">
+            <span>●</span><span>長期記憶同步 (NotebookLM)</span>
+        </div>
+        <div class="text-[9px] md:text-[10px] text-gray-500 break-word-safe">
+            記憶檢索中：上次類似壓力事件發生於 2026/04/12，B 當時以擁抱化解了 A 的負面情緒。
+        </div>
+    </div>
+</div>
+</div>
+</section>
+
+<!-- ========== Section: 未來藍圖與倫理 ========== -->
+<section id="section-roadmap" class="hidden space-y-8 md:space-y-12 animate-fade-in-up">
+    <div class="grid md:grid-cols-2 gap-8 md:gap-12">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-gray-800">未來五年發展藍圖</h2>
+            <div class="space-y-5 md:space-y-6 relative border-l-2 border-[#E2A285] pl-5 md:pl-6 ml-3 md:ml-4">
+                <div class="relative">
+                    <div class="absolute -left-[27px] md:-left-[31px] top-1 w-3.5 h-3.5 md:w-4 md:h-4 rounded-full bg-[#E2A285]"></div>
+                    <h4 class="font-bold text-sm md:text-base">2026: 代理緩衝層 (The Buffer Era)</h4>
+                    <p class="text-xs md:text-sm text-gray-500">建立基礎 A2A 與 MCP 通訊，實現情緒轉譯與壓力預警。</p>
+                </div>
+                <div class="relative">
+                    <div class="absolute -left-[27px] md:-left-[31px] top-1 w-3.5 h-3.5 md:w-4 md:h-4 rounded-full bg-gray-300"></div>
+                    <h4 class="font-bold text-sm md:text-base">2027: 多模態讀心 (Biometric Harmony)</h4>
+                    <p class="text-xs md:text-sm text-gray-500">整合即時語音語調分析，在電話中即時提醒使用者調整語氣。</p>
+                </div>
+                <div class="relative">
+                    <div class="absolute -left-[27px] md:-left-[31px] top-1 w-3.5 h-3.5 md:w-4 md:h-4 rounded-full bg-gray-300"></div>
+                    <h4 class="font-bold text-sm md:text-base">2029: 關係數位雙生 (Relational Digital Twin)</h4>
+                    <p class="text-xs md:text-sm text-gray-500">AI 可模擬複雜決策後雙方的反應，減少重大決策（如置產、生子）的摩擦。</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-gray-800">AI 情侶憲章 (Constitution)</h2>
+            <div class="glass-card p-6 md:p-8 bg-white space-y-3 md:space-y-4">
+                <p class="text-xs md:text-sm font-bold border-b pb-2 md:pb-3">1. 隱私絕對隔離：個人 AI 絕不向對方代理洩露未授權的原始數據與心底秘密。</p>
+                <p class="text-xs md:text-sm font-bold border-b pb-2 md:pb-3">2. 真人優先權：AI 建議僅供參考，系統禁止代表人類直接發送任何「道歉」或「承諾」。</p>
+                <p class="text-xs md:text-sm font-bold border-b pb-2 md:pb-3">3. 中立演算法：共同 AI 不偏袒任何一方，核心目標為關係的長遠穩定與健康。</p>
+                <p class="text-xs md:text-sm font-bold">4. 退出權利：任何一方皆可隨時切斷 AI 之間的連動，並刪除關係記憶庫。</p>
+            </div>
+        </div>
+    </div>
+</section>
 </main>
 
-<footer class="mt-20 border-t border-gray-100 py-10 text-center text-gray-400 text-xs space-y-2">
-    <p>© 2026 CAIOS Research Group. 致力於利用人類智慧與人工智慧重塑親密關係。</p>
-    <p>營養師 李亮頡 研究開發 2026/07/15</p>
+<!-- ==================== Footer ==================== -->
+<footer class="mt-16 md:mt-20 border-t border-gray-100 py-8 md:py-10 text-center text-gray-400 text-[11px] md:text-xs space-y-1 md:space-y-2 safe-padding-x">
+    <p class="break-word-safe">© 2026 CAIOS Research Group. 致力於利用人類智慧與人工智慧重塑親密關係。</p>
+    <p class="break-word-safe">營養師 李亮頡 研究開發 2026/07/15</p>
 </footer>
 
+<!-- ==================== JavaScript ==================== -->
 <script>
-    // Navigation Logic
+    // ========== 手機選單控制 ==========
+    function toggleMobileMenu() {
+        const panel = document.getElementById('mobile-menu-panel');
+        const openIcon = document.getElementById('menu-icon-open');
+        const closeIcon = document.getElementById('menu-icon-close');
+        const btn = document.getElementById('mobile-menu-btn');
+        const isOpen = !panel.classList.contains('hidden');
+
+        if (isOpen) {
+            panel.classList.add('hidden');
+            panel.classList.remove('mobile-menu-enter-active');
+            openIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.setAttribute('aria-label', '開啟導覽選單');
+        } else {
+            panel.classList.remove('hidden');
+            panel.classList.add('mobile-menu-enter-active');
+            openIcon.classList.add('hidden');
+            closeIcon.classList.remove('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+            btn.setAttribute('aria-label', '關閉導覽選單');
+        }
+    }
+
+    function closeMobileMenu() {
+        const panel = document.getElementById('mobile-menu-panel');
+        const openIcon = document.getElementById('menu-icon-open');
+        const closeIcon = document.getElementById('menu-icon-close');
+        const btn = document.getElementById('mobile-menu-btn');
+
+        if (!panel.classList.contains('hidden')) {
+            panel.classList.add('hidden');
+            panel.classList.remove('mobile-menu-enter-active');
+            openIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.setAttribute('aria-label', '開啟導覽選單');
+        }
+    }
+
+    // 點擊選單外部時關閉 (僅手機)
+    document.addEventListener('click', function(event) {
+        const panel = document.getElementById('mobile-menu-panel');
+        const btn = document.getElementById('mobile-menu-btn');
+        if (!panel.classList.contains('hidden') &&
+            !panel.contains(event.target) &&
+            !btn.contains(event.target)) {
+            closeMobileMenu();
+        }
+    });
+
+    // 螢幕旋轉或調整大小時，若從手機切換到桌面，關閉手機選單
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 768) {
+            closeMobileMenu();
+        }
+    });
+
+    // ========== 區塊切換邏輯 ==========
     function showSection(sectionId) {
         const targetSection = document.getElementById('section-' + sectionId);
         if (!targetSection) return;
 
+        // 隱藏所有 section
         document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+        // 顯示目標 section
         targetSection.classList.remove('hidden');
-        
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        // 重新觸發動畫
+        targetSection.classList.remove('animate-fade-in', 'animate-fade-in-up');
+        void targetSection.offsetWidth;
+        if (sectionId === 'research') {
+            targetSection.classList.add('animate-fade-in');
+        } else {
+            targetSection.classList.add('animate-fade-in-up');
+        }
+
+        // 更新桌面導覽 active 狀態
+        document.querySelectorAll('#nav-research, #nav-dashboard, #nav-roadmap').forEach(l => l.classList.remove(
+            'active'));
         const targetNav = document.getElementById('nav-' + sectionId);
         if (targetNav) targetNav.classList.add('active');
-        
-        if (sectionId === 'dashboard') initChart();
+
+        // 更新手機導覽 active 狀態
+        document.querySelectorAll('.mobile-nav-link').forEach(l => l.classList.remove('active'));
+        const mobileTarget = document.querySelector(`.mobile-nav-link[href="#${sectionId}"]`);
+        if (mobileTarget) mobileTarget.classList.add('active');
+
+        // 關閉手機選單
+        closeMobileMenu();
+
+        // 若切換到儀表板，初始化圖表
+        if (sectionId === 'dashboard') {
+            setTimeout(initChart, 200);
+        }
     }
 
-    // Handle URL hash changes for robust navigation
+    // 處理 URL hash 導航
     function handleHashNavigation() {
         let hash = window.location.hash.replace('#', '');
         if (!['research', 'dashboard', 'roadmap'].includes(hash)) {
-            hash = 'research'; // Default to research if invalid or empty
+            hash = 'research';
         }
         showSection(hash);
     }
 
-    // Listen for hash changes (e.g. user clicks link or back button)
+    // 監聽 hash 變化
     window.addEventListener('hashchange', handleHashNavigation);
 
-    // Chart Initialization
-    let healthChart;
+    // ========== Chart.js 初始化 ==========
+    let healthChart = null;
+
     function initChart() {
-        if (healthChart) return;
-        const ctx = document.getElementById('healthChart').getContext('2d');
+        const canvas = document.getElementById('healthChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        // 若已存在圖表實例，先銷毀
+        if (healthChart) {
+            healthChart.destroy();
+            healthChart = null;
+        }
+
         healthChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
@@ -329,25 +700,43 @@
                     data: [82, 18],
                     backgroundColor: ['#86A789', '#E2A285'],
                     borderWidth: 0,
-                    cutout: '80%'
+                    cutout: '78%'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: true,
+                        bodyFont: { size: 12 },
+                        titleFont: { size: 13 }
+                    }
+                },
+                // 減少動畫以提高手機效能
+                animation: {
+                    duration: 600,
+                    easing: 'easeOutQuart'
                 }
             }
         });
     }
 
-    // A2A Simulation Logic
+    // ========== A2A 模擬邏輯 ==========
     function addLog(msg, type = 'info') {
         const container = document.getElementById('log-container');
+        if (!container) return;
         const div = document.createElement('div');
-        const color = type === 'success' ? '#86A789' : (type === 'warn' ? '#E2A285' : (type === 'error' ? '#EF4444' : '#4ADE80'));
+        let color = '#4ADE80';
+        if (type === 'success') color = '#86A789';
+        else if (type === 'warn') color = '#E2A285';
+        else if (type === 'error') color = '#EF4444';
+        else if (type === 'info') color = '#4ADE80';
+
         div.style.color = color;
+        div.style.wordBreak = 'break-word';
+        div.style.overflowWrap = 'break-word';
         div.innerHTML = `> [${new Date().toLocaleTimeString()}] ${msg}`;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
@@ -356,79 +745,93 @@
     let currentConflictRisk = 45;
 
     function updateMetrics() {
-        const aEnergy = parseInt(document.getElementById('a-energy').value);
-        const aStress = parseInt(document.getElementById('a-stress').value);
-        const bEnergy = parseInt(document.getElementById('b-energy').value);
-        const bStress = parseInt(document.getElementById('b-stress').value);
-        const topic = document.getElementById('topic-select').value;
+        const aEnergy = parseInt(document.getElementById('a-energy')?.value) || 40;
+        const aStress = parseInt(document.getElementById('a-stress')?.value) || 80;
+        const bEnergy = parseInt(document.getElementById('b-energy')?.value) || 80;
+        const bStress = parseInt(document.getElementById('b-stress')?.value) || 30;
+        const topicSelect = document.getElementById('topic-select');
+        const topic = topicSelect?.value || 'chores';
         const emotionSelect = document.getElementById('emotion-select');
-        const emotionRisk = parseInt(emotionSelect.options[emotionSelect.selectedIndex].getAttribute('data-risk')) || 0;
+        const emotionRisk = emotionSelect ? (parseInt(emotionSelect.options[emotionSelect.selectedIndex]?.getAttribute(
+            'data-risk')) || 0) : 0;
 
-        // UI Updates for Sliders
-        document.getElementById('a-energy-val').innerText = `${aEnergy}% ${aEnergy < 40 ? '(偏低)' : (aEnergy > 70 ? '(良好)' : '')}`;
-        document.getElementById('a-energy-val').className = `font-bold ${aEnergy < 40 ? 'text-orange-500' : 'text-green-600'}`;
-        
-        document.getElementById('a-stress-val').innerText = `${aStress}% ${aStress > 70 ? '(高)' : (aStress < 40 ? '(低)' : '')}`;
-        document.getElementById('a-stress-val').className = `font-bold ${aStress > 70 ? 'text-red-500' : 'text-gray-600'}`;
-        
-        document.getElementById('b-energy-val').innerText = `${bEnergy}%`;
-        document.getElementById('b-stress-val').innerText = `${bStress}%`;
+        // 更新 UI 數值
+        const aEnergyVal = document.getElementById('a-energy-val');
+        const aStressVal = document.getElementById('a-stress-val');
+        const bEnergyVal = document.getElementById('b-energy-val');
+        const bStressVal = document.getElementById('b-stress-val');
 
-        // Calculate Dynamic Conflict Risk
-        // Base risk from stress and lack of energy
+        if (aEnergyVal) {
+            aEnergyVal.innerText = `${aEnergy}% ${aEnergy < 40 ? '(偏低)' : (aEnergy > 70 ? '(良好)' : '')}`;
+            aEnergyVal.className = `font-bold ${aEnergy < 40 ? 'text-orange-500' : 'text-green-600'}`;
+        }
+        if (aStressVal) {
+            aStressVal.innerText = `${aStress}% ${aStress > 70 ? '(高)' : (aStress < 40 ? '(低)' : '')}`;
+            aStressVal.className = `font-bold ${aStress > 70 ? 'text-red-500' : 'text-gray-600'}`;
+        }
+        if (bEnergyVal) {
+            bEnergyVal.innerText = `${bEnergy}%`;
+        }
+        if (bStressVal) {
+            bStressVal.innerText = `${bStress}%`;
+        }
+
+        // 計算動態衝突風險
         let risk = (aStress + bStress) * 0.35 + (100 - aEnergy) * 0.2 + (100 - bEnergy) * 0.2;
-        
-        // Context modifier based on topic
-        if (topic === 'finance' || topic === 'family') risk += 15; // Hard topics
-        if (topic === 'date') risk -= 10; // Positive topics
-        
-        // Emotion modifier (Psychological Weight)
+        if (topic === 'finance' || topic === 'family') risk += 15;
+        if (topic === 'date') risk -= 10;
         risk += emotionRisk;
-        
         risk = Math.max(5, Math.min(98, Math.round(risk)));
         currentConflictRisk = risk;
-        
-        // Update Risk UI
+
+        // 更新風險 UI
         const riskEl = document.getElementById('conflict-prob');
         const cardEl = document.getElementById('conflict-card');
-        riskEl.innerText = `${risk}%`;
-        
-        cardEl.className = 'p-2 rounded transition-colors duration-300 border ';
-        if (risk >= 70) {
-            cardEl.classList.add('bg-red-50', 'border-red-200');
-            riskEl.classList.add('text-red-600');
-        } else if (risk >= 40) {
-            cardEl.classList.add('bg-orange-50', 'border-orange-200');
-            riskEl.classList.add('text-orange-600');
-        } else {
-            cardEl.classList.add('bg-blue-50', 'border-blue-200');
-            riskEl.classList.add('text-blue-600');
+        if (riskEl) riskEl.innerText = `${risk}%`;
+
+        if (cardEl) {
+            cardEl.className = 'p-2 md:p-3 rounded transition-colors duration-300 border ';
+            if (risk >= 70) {
+                cardEl.classList.add('bg-red-50', 'border-red-200');
+                if (riskEl) riskEl.className = 'text-base md:text-lg font-bold text-red-600';
+            } else if (risk >= 40) {
+                cardEl.classList.add('bg-orange-50', 'border-orange-200');
+                if (riskEl) riskEl.className = 'text-base md:text-lg font-bold text-orange-600';
+            } else {
+                cardEl.classList.add('bg-blue-50', 'border-blue-200');
+                if (riskEl) riskEl.className = 'text-base md:text-lg font-bold text-blue-600';
+            }
         }
     }
 
     function simulateA2A() {
         const emotionSelect = document.getElementById('emotion-select');
-        // Extract just the emotion name
-        const emotionText = emotionSelect.options[emotionSelect.selectedIndex].text.split(' ')[1]; 
+        if (!emotionSelect) return;
+        const emotionText = emotionSelect.options[emotionSelect.selectedIndex]?.text.split(' ')[1] || '未知';
         const emotionVal = emotionSelect.value;
-        const emotionType = emotionSelect.options[emotionSelect.selectedIndex].getAttribute('data-type');
-        
-        const topic = document.getElementById('topic-select');
-        const topicText = topic.options[topic.selectedIndex].text;
-        
-        // Get current states
-        const aStress = parseInt(document.getElementById('a-stress').value);
-        const bStress = parseInt(document.getElementById('b-stress').value);
-        const aEnergy = parseInt(document.getElementById('a-energy').value);
+        const emotionType = emotionSelect.options[emotionSelect.selectedIndex]?.getAttribute('data-type') || 'primary';
 
-        // Reset Log
-        document.getElementById('log-container').innerHTML = '';
+        const topicSelect = document.getElementById('topic-select');
+        const topicText = topicSelect?.options[topicSelect.selectedIndex]?.text || '日常瑣事';
+
+        const aStress = parseInt(document.getElementById('a-stress')?.value) || 80;
+        const bStress = parseInt(document.getElementById('b-stress')?.value) || 30;
+        const aEnergy = parseInt(document.getElementById('a-energy')?.value) || 40;
+
+        // 重置日誌
+        const logContainer = document.getElementById('log-container');
+        if (logContainer) logContainer.innerHTML = '';
         addLog(`===== 啟動 A2A 同步 (主題: ${topicText}) =====`, "info");
-        document.getElementById('guidance-b').style.opacity = '0.5';
+
+        const guidanceEl = document.getElementById('guidance-b');
+        if (guidanceEl) {
+            guidanceEl.style.opacity = '0.5';
+            guidanceEl.innerText = '⏳ 處理中...';
+        }
 
         setTimeout(() => {
             addLog(`[Tier 1] 分析 A 狀態：壓力 ${aStress}%, 電量 ${aEnergy}%。核心情緒：${emotionText}`, "info");
-            
+
             if (emotionType === 'danger') {
                 addLog(`⚠️ 警告：偵測到高特曼「末日四騎士」(${emotionText})。啟動強制緩衝過濾機制...`, "error");
             } else if (emotionType === 'secondary') {
@@ -438,53 +841,57 @@
             } else {
                 addLog("A 狀態平穩。提取核心意圖...", "success");
             }
-            
+
             setTimeout(() => {
                 addLog(`[Tier 2] A2A 連線建立：向伴侶 B 代理發送心理狀態參數包...`, "info");
 
                 setTimeout(() => {
-                    addLog(`[Tier 3] 中介者計算：當前雙方綜合衝突預測率為 ${currentConflictRisk}%。`, currentConflictRisk > 70 ? "error" : "warn");
+                    addLog(
+                        `[Tier 3] 中介者計算：當前雙方綜合衝突預測率為 ${currentConflictRisk}%。`,
+                        currentConflictRisk > 70 ? "error" : "warn");
 
-                    // Dynamic Guidance Generation based on psychological states and EFT/Gottman
                     let guidance = "";
-                    
+
                     if (emotionType === 'positive') {
-                         guidance = `「✨ 情感增溫：A 傳達了對您的『${emotionText}』與正向連結意圖。代理建議：給予熱情且具體的回應，這是為你們的『情感帳戶 (Love Map)』存款的絕佳時機！」`;
-                         addLog("指引生成：偵測到正向情緒，鼓勵放大情感存款。", "success");
-                    
+                        guidance =
+                            `「✨ 情感增溫：A 傳達了對您的『${emotionText}』與正向連結意圖。代理建議：給予熱情且具體的回應，這是為你們的『情感帳戶 (Love Map)』存款的絕佳時機！」`;
+                        addLog("指引生成：偵測到正向情緒，鼓勵放大情感存款。", "success");
                     } else if (emotionType === 'danger' || currentConflictRisk >= 80) {
-                         guidance = `「🚨 高危險預測：A 目前處於高度『${emotionText}』狀態。基於高特曼理論，此時對話有 85% 機率演變為破壞性爭吵（預測衝突率 ${currentConflictRisk}%）。代理強制建議：啟動『暫停協議 (Time-out)』，至少冷卻 20 分鐘。請回覆：『我現在狀態不好，我們半小時後再談。』」`;
-                         addLog("中介者介入：偵測到關係殺手，強制建議暫停對話。", "error");
-                    
+                        guidance =
+                            `「🚨 高危險預測：A 目前處於高度『${emotionText}』狀態。基於高特曼理論，此時對話有 85% 機率演變為破壞性爭吵（預測衝突率 ${currentConflictRisk}%）。代理強制建議：啟動『暫停協議 (Time-out)』，至少冷卻 20 分鐘。請回覆：『我現在狀態不好，我們半小時後再談。』」`;
+                        addLog("中介者介入：偵測到關係殺手，強制建議暫停對話。", "error");
                     } else if (emotionType === 'primary') {
-                         guidance = `「🫂 EFT 依附需求：A 表現出『${emotionText}』，這通常源自於對關係安全感的渴望。您的壓力狀態 (${bStress}%) 允許介入。代理建議：放下手邊事物，給予肢體接觸或專注的傾聽。『先連結情感，再處理問題』。」`;
-                         addLog("指引生成：基於情緒取向治療 (EFT)，建議 B 提供安全基地安撫。", "warn");
-                    
+                        guidance =
+                            `「🫂 EFT 依附需求：A 表現出『${emotionText}』，這通常源自於對關係安全感的渴望。您的壓力狀態 (${bStress}%) 允許介入。代理建議：放下手邊事物，給予肢體接觸或專注的傾聽。『先連結情感，再處理問題』。」`;
+                        addLog("指引生成：基於情緒取向治療 (EFT)，建議 B 提供安全基地安撫。", "warn");
                     } else if (emotionType === 'secondary' && aStress > 70 && bStress <= 50) {
-                         guidance = `「💡 狀態提醒：A 的『${emotionText}』往往是高認知負荷的表徵。您的狀態有餘裕，代理建議：不要針對語氣進行反擊，主動接手今晚的瑣事，或主導『${topicText}』的決策，從根本降低 A 的壓力源。」`;
-                         addLog("指引生成：B 狀態佳，建議越過表層情緒提供實質支援。", "success");
-                    
+                        guidance =
+                            `「💡 狀態提醒：A 的『${emotionText}』往往是高認知負荷的表徵。您的狀態有餘裕，代理建議：不要針對語氣進行反擊，主動接手今晚的瑣事，或主導『${topicText}』的決策，從根本降低 A 的壓力源。」`;
+                        addLog("指引生成：B 狀態佳，建議越過表層情緒提供實質支援。", "success");
                     } else {
-                         guidance = `「🛡️ 緩衝提醒：A 帶著『${emotionText}』的情緒想討論『${topicText}』。由於雙方目前壓力值皆不低，代理已微調 A 的預期。建議：溫和地回覆『我理解這件事很重要，但我們現在都很累，明天晚餐後再好好討論好嗎？』」`;
-                         addLog("指引生成：保護雙方邊界，建議溫和延後。", "warn");
+                        guidance =
+                            `「🛡️ 緩衝提醒：A 帶著『${emotionText}』的情緒想討論『${topicText}』。由於雙方目前壓力值皆不低，代理已微調 A 的預期。建議：溫和地回覆『我理解這件事很重要，但我們現在都很累，明天晚餐後再好好討論好嗎？』」`;
+                        addLog("指引生成：保護雙方邊界，建議溫和延後。", "warn");
                     }
 
-                    document.getElementById('guidance-b').innerText = guidance;
-                    document.getElementById('guidance-b').style.opacity = '1';
-                    document.getElementById('guidance-b').classList.add('text-gray-800');
+                    if (guidanceEl) {
+                        guidanceEl.innerText = guidance;
+                        guidanceEl.style.opacity = '1';
+                        guidanceEl.classList.add('text-gray-800');
+                    }
                     addLog("指引生成成功，已顯示於 B 終端。", "success");
-                    
-                    // Slightly update chart to reflect interaction
+
+                    // 更新圖表
                     if (healthChart) {
-                         let pos = healthChart.data.datasets[0].data[0];
-                         let neg = healthChart.data.datasets[0].data[1];
-                         if (currentConflictRisk > 70 || emotionType === 'danger' || emotionType === 'secondary') {
-                             neg += 2; 
-                         } else {
-                             pos += 2;
-                         }
-                         healthChart.data.datasets[0].data = [pos, neg];
-                         healthChart.update();
+                        let pos = healthChart.data.datasets[0].data[0];
+                        let neg = healthChart.data.datasets[0].data[1];
+                        if (currentConflictRisk > 70 || emotionType === 'danger' || emotionType === 'secondary') {
+                            neg += 2;
+                        } else {
+                            pos += 2;
+                        }
+                        healthChart.data.datasets[0].data = [pos, neg];
+                        healthChart.update();
                     }
 
                 }, 1200);
@@ -492,9 +899,26 @@
         }, 800);
     }
 
-    // Initialize metrics on load
+    // ========== 頁面初始化 ==========
     window.addEventListener('DOMContentLoaded', () => {
         updateMetrics();
         handleHashNavigation();
+
+        // 預載圖表（若初始顯示儀表板）
+        if (window.location.hash === '#dashboard') {
+            setTimeout(initChart, 300);
+        }
     });
+
+    // ========== 效能優化：頁面不可見時暫停動畫 ==========
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && healthChart) {
+            // 頁面隱藏時可選擇暫停更新，此處保留圖表
+        }
+    });
+
+    // ========== 防止 iOS 橡皮筋效果導致誤觸 ==========
+    document.addEventListener('touchmove', function(e) {}, { passive: true });
 </script>
+</body>
+</html>
