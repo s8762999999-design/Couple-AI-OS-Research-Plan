@@ -3,223 +3,425 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAIOS - 伴侶 AI 作業系統動態儀表板</title>
+    <title>CAIOS - 世界首創 AI 伴侶作業系統研究報告與實作原型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Harmony (背景 #FDFBF7, 主色 #4A5568, 強調色 #E2A285, 成功色 #86A789) -->
     <style>
-        :root {
-            --bg-color: #f4f7f6;
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --success-color: #2ecc71;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --card-bg: #ffffff;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--primary-color);
-            margin: 0;
-            padding: 20px;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 15px;
-        }
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .tier-personal-a { border-top: 5px solid #9b59b6; }
-        .tier-mediator { border-top: 5px solid var(--success-color); }
-        .tier-personal-b { border-top: 5px solid var(--accent-color); }
-        h2 { margin-top: 0; font-size: 1.3rem; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
-        h3 { font-size: 1.1rem; color: #555; }
-        .data-point {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-            font-size: 0.95rem;
-        }
-        .health-score {
-            font-size: 3.5rem;
-            text-align: center;
-            font-weight: bold;
-            color: var(--success-color);
-            margin: 10px 0;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .badge-optimal { background-color: var(--success-color); }
-        .badge-warning { background-color: var(--warning-color); }
-        .badge-danger { background-color: var(--danger-color); }
-        .action-btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin-top: auto;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        .action-btn:hover { background-color: #1a252f; }
-        .log-box {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            height: 160px;
-            overflow-y: auto;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            margin-bottom: 15px;
-        }
-        .log-entry { margin-bottom: 5px; border-bottom: 1px dotted #ccc; padding-bottom: 3px; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #FDFBF7; color: #4A5568; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(226, 162, 133, 0.2); border-radius: 1rem; }
+        .scroll-hide::-webkit-scrollbar { display: none; }
+        .nav-link.active { border-bottom: 2px solid #E2A285; color: #E2A285; }
     </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-    <header>
-        <h1>CAIOS 伴侶關係核心儀表板</h1>
-        <p>多代理架構即時狀態監控 (MCP + A2A 模擬環境)</p>
-    </header>
+<!-- Application Structure Plan:
+    1. 導覽結構：採用「研究報告」與「互動儀表板」雙視角切換。
+    2. 研究報告：將複雜的技術與心理學概念模組化，提供從架構設計、通訊協定到倫理憲章的完整理論基礎。
+    3. 互動儀表板：設計一個三欄式的「代理監控中心」，左側為使用者 A 的個人 AI，右側為伴侶 B，中間為共同關係 AI。
+    4. 核心互動：使用者可點擊「模擬狀態同步」，觸發 AI 之間的 A2A (Agent-to-Agent) 對話流，展示系統如何根據健康數據與心理演算法生成應對指引。
+    5. 視覺化：使用 Chart.js 展示關係健康趨勢與情緒負荷，強化資料科學的視覺感。
+-->
 
-    <div class="dashboard">
-        <!-- 個人 AI A -->
-        <div class="card tier-personal-a">
-            <h2>個人 AI (端點 A)</h2>
-            <div class="data-point"><span>睡眠品質 (WASO 指標)</span> <span class="status-badge badge-warning">65% (中斷頻繁)</span></div>
-            <div class="data-point"><span>行事曆負載 (MCP)</span> <span class="status-badge badge-danger">極高 (連續會議)</span></div>
-            <div class="data-point"><span>預估情緒彈性</span> <span style="color: var(--danger-color); font-weight: bold;">低</span></div>
-            
-            <h3>內部推理與 A2A 傳輸日誌</h3>
-            <div class="log-box" id="log-a">
-                <div class="log-entry">[系統] 載入 NotebookLM 個人記憶卡...</div>
-                <div class="log-entry">[MCP] 獲取 Health API 數據：深層睡眠不足。</div>
-            </div>
-            <button class="action-btn" onclick="triggerEventA()">啟動：意圖轉譯與發送</button>
-        </div>
+<!-- Visualization & Content Choices:
+    1. 三層架構圖：使用 HTML/Tailwind 網格系統構建，而非 SVG，展示個人 AI 與中介者的階層關係。
+    2. 關係健康指標：使用 Chart.js 環狀圖展示 Gottman 5:1 比例指標。
+    3. A2A 通訊日誌：動態 JS 生成的控制台文字流，展示 AI 之間的意圖交換。
+    4. 實作藍圖：結構化列表與步驟指引，針對 Gemini 生態系 (Gems/NotebookLM) 進行落地優化。
+    5. 憲章與倫理：使用排版精美的卡片呈現 AI 情侶憲章。
+-->
 
-        <!-- 共同關係 AI (Mediator) -->
-        <div class="card tier-mediator">
-            <h2>聯合關係調解 AI</h2>
-            <h3>Gottman 健康度指數</h3>
-            <div class="health-score" id="health-score">82</div>
-            <div class="data-point"><span>互動正負比例</span> <span>4.2 : 1</span></div>
-            <div class="data-point"><span>衝突升級預測 (4分鐘內)</span> <span class="status-badge badge-optimal" id="conflict-badge">15% (安全)</span></div>
-            
-            <h3>聯合決策與應對指引</h3>
-            <div class="log-box" id="log-mediator">
-                <div class="log-entry">[待命] 持續監控雙方狀態同步...</div>
-            </div>
-            <button class="action-btn" onclick="forceMediation()">強制重新計算關係指標</button>
-        </div>
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
-        <!-- 個人 AI B -->
-        <div class="card tier-personal-b">
-            <h2>個人 AI (端點 B)</h2>
-            <div class="data-point"><span>睡眠品質 (WASO 指標)</span> <span class="status-badge badge-optimal">92% (恢復良好)</span></div>
-            <div class="data-point"><span>行事曆負載 (MCP)</span> <span class="status-badge badge-optimal">低 (彈性工時)</span></div>
-            <div class="data-point"><span>預估情緒彈性</span> <span style="color: var(--success-color); font-weight: bold;">高</span></div>
-            
-            <h3>接收端處理日誌</h3>
-            <div class="log-box" id="log-b">
-                <div class="log-entry">[系統] 載入 NotebookLM 個人記憶卡...</div>
-                <div class="log-entry">[系統] 等待 A2A 推播通知...</div>
-            </div>
-            <button class="action-btn" onclick="triggerEventB()">檢視 AI 建議視角</button>
-        </div>
+<nav class="sticky top-0 z-50 bg-white/80 border-b border-gray-100 px-6 py-4 flex justify-between items-center backdrop-blur-md">
+    <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 bg-[#E2A285] rounded-full flex items-center justify-center text-white font-bold text-xl">C</div>
+        <span class="text-xl font-bold tracking-tight text-[#4A5568]">CAIOS <span class="text-xs font-light">v1.0 Beta</span></span>
     </div>
+    <div class="hidden md:flex space-x-8 font-medium">
+        <button onclick="showSection('research')" id="nav-research" class="nav-link active py-1 transition-all">研究報告</button>
+        <button onclick="showSection('dashboard')" id="nav-dashboard" class="nav-link py-1 transition-all">互動儀表板</button>
+        <button onclick="showSection('roadmap')" id="nav-roadmap" class="nav-link py-1 transition-all">未來藍圖</button>
+    </div>
+</nav>
 
-    <script>
-        function getTimestamp() {
-            return new Date().toLocaleTimeString('zh-TW', { hour12: false });
+<main class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Section: Research Report -->
+    <section id="section-research" class="space-y-12 animate-in fade-in duration-700">
+        <header class="text-center space-y-4">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">打造世界第一個 AI 伴侶作業系統</h1>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">整合代理型 AI 架構與臨床心理學，建立伴侶間的「數位共鳴橋樑」。</p>
+        </header>
+
+        <article class="prose prose-slate max-w-none">
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-bold border-l-4 border-[#E2A285] pl-4 text-gray-700">概念研究與 2026 趨勢</h2>
+                    <p class="leading-relaxed">CAIOS 核心並非聊天機器人，而是<b>「多代理關係系統 (MARS)」</b>。在 2026 年，Agentic AI 的發展已能處理複雜的長期任務。我們利用 <b>Model Context Protocol (MCP)</b> 讓 AI 獲取現實生活數據，並透過 <b>A2A (Agent-to-Agent)</b> 讓獨立的個人 AI 互相談判、理解與協作。</p>
+                    <div class="bg-gray-50 p-4 rounded-lg text-sm italic">
+                        "未來的伴侶關係中，AI 不僅是輔助，更是緩衝層 (Buffer Layer)，在爭執發生前，AI 已完成意圖轉譯。"
+                    </div>
+                </div>
+                <div class="glass-card p-6 border-t-4 border-[#86A789]">
+                    <h3 class="font-bold mb-4">系統核心三層架構</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start"><span class="bg-[#86A789] text-white rounded px-2 mr-2">Tier 1</span> <b>個人 AI (Personal Edge)：</b>管理 MBTI、健康數據、工作壓力，絕對隱私，僅供本人與其代理。</li>
+                        <li class="flex items-start"><span class="bg-[#E2A285] text-white rounded px-2 mr-2">Tier 2</span> <b>伴侶 AI 接入口 (Partner Interface)：</b>對外安全閘道，負責將內部狀態「轉譯」為非攻擊性的客觀請求。</li>
+                        <li class="flex items-start"><span class="bg-[#4A5568] text-white rounded px-2 mr-2">Tier 3</span> <b>共同關係 AI (Mediator)：</b>儲存共同回憶、關係 KPI 與中立調解演算法。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-12 space-y-6">
+                <h2 class="text-2xl font-bold text-gray-700 text-center">核心技術：AI 讀心術與記憶系統</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-[#E2A285] mb-2">情境工程 (Context Engineering)</h4>
+                        <p class="text-sm">整合 Google Health Data (睡眠、心率變異度) 與行事曆負載，計算「情緒彈性指標 (Emotional Resilience)」，預測當日適合討論的議題難度。</p>
+                    </div>
+                    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-[#E2A285] mb-2">NotebookLM 長期記憶</h4>
+                        <p class="text-sm">利用 NotebookLM 建立 1-10 年的關係時間軸，自動壓縮日常對話為「核心情感模式」，識別出反覆出現的衝突迴圈。</p>
+                    </div>
+                    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-[#E2A285] mb-2">Gottman 演算法</h4>
+                        <p class="text-sm">系統內建「末日四騎士」偵測器。當偵測到批評、鄙視時，代理會啟動「溫和開場 (Softened Startup)」過濾，優化輸出詞彙。</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <section class="mt-12 bg-[#F5EBE0] p-8 rounded-2xl">
+            <h2 class="text-2xl font-bold mb-6 text-center">MVP 實作方案：今天就開始 (雙手機環境)</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <h3 class="font-bold flex items-center"><span class="mr-2">📱</span> 步驟一：配置 Gemini Gems</h3>
+                    <p class="text-sm">分別建立名為「我的伴侶代理」的 Gem。在系統指令中輸入：「你是我的代理人，了解我的依附人格（EFT）與愛之語，請過濾我的情緒化字眼，並隨時與伴侶的代理同步最新狀態。」</p>
+                    <h3 class="font-bold flex items-center"><span class="mr-2">📚</span> 步驟二：建立 NotebookLM 知識庫</h3>
+                    <p class="text-sm">雙方共同編輯一個 Google Doc，上傳兩人的共同目標、約會紀念與溝通規則。將此文件作為 NotebookLM 的來源，Gemini 即可獲取長期關係記憶。</p>
+                </div>
+                <div class="space-y-4">
+                    <h3 class="font-bold flex items-center"><span class="mr-2">🔗</span> 步驟三：模擬 A2A 通訊</h3>
+                    <p class="text-sm">利用 Google Workspace 的共享文件機制。當 AI A 產生日報建議時，自動更新至共享 Doc，AI B 的 Gem 會讀取該變化並推播建議給伴侶 B，實現非同步狀態更新。</p>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <!-- Section: Interactive Dashboard -->
+    <section id="section-dashboard" class="hidden space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+        <div class="text-center">
+            <h2 class="text-3xl font-bold text-gray-800">CAIOS 即時運作儀表板</h2>
+            <p class="text-gray-500">此儀表板模擬了兩個人機代理 (Agent) 的 A2A 協作流程</p>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- Agent A -->
+            <div class="glass-card p-6 flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold">個人 AI - 使用者 A</h3>
+                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">已連接 MCP</span>
+                </div>
+                <div class="space-y-4 flex-grow">
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <div class="flex justify-between text-xs mb-2"><span>身心電量 (HRV)</span><span id="a-energy-val" class="font-bold text-orange-500">40% (偏低)</span></div>
+                        <input type="range" id="a-energy" min="0" max="100" value="40" class="w-full accent-[#E2A285]" oninput="updateMetrics()">
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <div class="flex justify-between text-xs mb-2"><span>行事曆壓力負載</span><span id="a-stress-val" class="font-bold text-red-500">80% (高)</span></div>
+                        <input type="range" id="a-stress" min="0" max="100" value="80" class="w-full accent-[#E2A285]" oninput="updateMetrics()">
+                    </div>
+                    <div class="mt-4">
+                        <label class="text-xs font-bold block mb-2 text-gray-400">當前情緒輸入模擬</label>
+                        <textarea id="input-a" class="w-full p-3 text-sm rounded-lg border-gray-200 border outline-none focus:ring-1 focus:ring-[#E2A285] h-20" placeholder="例：我今天覺得好累，但他又在念我沒洗碗..."></textarea>
+                    </div>
+                </div>
+                <button onclick="simulateA2A()" class="mt-4 w-full bg-[#4A5568] text-white py-2 rounded-lg font-bold hover:bg-gray-700 transition shadow-lg shadow-gray-200">啟動代理轉譯與對話</button>
+            </div>
+
+            <!-- Mediator -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass-card p-6 text-center">
+                    <h3 class="font-bold mb-4">共同關係中介者 (Joint Mediator)</h3>
+                    <div class="mb-4 text-left">
+                        <label class="text-xs font-bold block mb-2 text-gray-400">欲發起之溝通主題</label>
+                        <select id="topic-select" class="w-full p-2 text-sm rounded-lg border border-gray-200 outline-none focus:ring-1 focus:ring-[#86A789] bg-white" onchange="updateMetrics()">
+                            <option value="chores">日常瑣事 (家事、作息)</option>
+                            <option value="finance">財務規劃 (花費、投資)</option>
+                            <option value="date">感情經營 (約會、陪伴)</option>
+                            <option value="family">家庭議題 (長輩、小孩)</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="healthChart"></canvas>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-4 text-xs">
+                        <div class="p-2 bg-green-50 rounded border border-green-100">
+                            <div class="text-gray-400">今日互動比</div>
+                            <div class="text-lg font-bold text-green-700">5.2 : 1</div>
+                        </div>
+                        <div class="p-2 bg-orange-50 rounded transition-colors duration-300 border border-transparent" id="conflict-card">
+                            <div class="text-gray-400">動態衝突預測</div>
+                            <div class="text-lg font-bold" id="conflict-prob">45%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 h-64 overflow-hidden flex flex-col">
+                    <h4 class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">A2A 通訊日誌 (Agent Logs)</h4>
+                    <div id="log-container" class="text-[10px] font-mono space-y-1 overflow-y-auto flex-grow scroll-hide bg-black text-green-400 p-3 rounded">
+                        <div>> 系統待命：等待 MCP 資料同步...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent B -->
+            <div class="glass-card p-6 flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold">個人 AI - 伴侶 B</h3>
+                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">已連接 MCP</span>
+                </div>
+                <div class="space-y-4 flex-grow">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <div class="flex justify-between text-[11px] mb-2"><span>身心電量</span><span id="b-energy-val" class="font-bold text-green-600">80%</span></div>
+                            <input type="range" id="b-energy" min="0" max="100" value="80" class="w-full accent-[#86A789]" oninput="updateMetrics()">
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <div class="flex justify-between text-[11px] mb-2"><span>壓力負載</span><span id="b-stress-val" class="font-bold text-gray-600">30%</span></div>
+                            <input type="range" id="b-stress" min="0" max="100" value="30" class="w-full accent-[#86A789]" oninput="updateMetrics()">
+                        </div>
+                    </div>
+                    <div class="bg-[#E2A285]/10 p-4 rounded-xl border border-[#E2A285]/20 shadow-inner">
+                        <h4 class="text-sm font-bold text-[#E2A285] mb-2">代理推薦應對指引：</h4>
+                        <p id="guidance-b" class="text-xs leading-relaxed text-gray-600 italic transition-opacity duration-300">調整滑桿並點擊啟動，等待 A2A 同步數據...</p>
+                    </div>
+                </div>
+                <div class="mt-6 border-t pt-4">
+                    <div class="flex items-center space-x-2 mb-2 text-xs font-bold text-gray-400">
+                        <span>●</span><span>長期記憶同步 (NotebookLM)</span>
+                    </div>
+                    <div class="text-[10px] text-gray-500">
+                        記憶檢索中：上次類似壓力事件發生於 2026/04/12，B 當時以擁抱化解了 A 的負面情緒。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Roadmap & Ethics -->
+    <section id="section-roadmap" class="hidden space-y-12 animate-in fade-in duration-500">
+        <div class="grid md:grid-cols-2 gap-12">
+            <div>
+                <h2 class="text-3xl font-bold mb-8 text-gray-800">未來五年發展藍圖</h2>
+                <div class="space-y-6 relative border-l-2 border-[#E2A285] pl-6 ml-4">
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-[#E2A285]"></div>
+                        <h4 class="font-bold">2026: 代理緩衝層 (The Buffer Era)</h4>
+                        <p class="text-sm text-gray-500">建立基礎 A2A 與 MCP 通訊，實現情緒轉譯與壓力預警。</p>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-gray-300"></div>
+                        <h4 class="font-bold">2027: 多模態讀心 (Biometric Harmony)</h4>
+                        <p class="text-sm text-gray-500">整合即時語音語調分析，在電話中即時提醒使用者調整語氣。</p>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-gray-300"></div>
+                        <h4 class="font-bold">2029: 關係數位雙生 (Relational Digital Twin)</h4>
+                        <p class="text-sm text-gray-500">AI 可模擬複雜決策後雙方的反應，減少重大決策（如置產、生子）的摩擦。</p>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h2 class="text-3xl font-bold mb-8 text-gray-800">AI 情侶憲章 (Constitution)</h2>
+                <div class="glass-card p-8 bg-white space-y-4">
+                    <p class="text-sm font-bold border-b pb-2">1. 隱私絕對隔離：個人 AI 絕不向對方代理洩露未授權的原始數據與心底秘密。</p>
+                    <p class="text-sm font-bold border-b pb-2">2. 真人優先權：AI 建議僅供參考，系統禁止代表人類直接發送任何「道歉」或「承諾」。</p>
+                    <p class="text-sm font-bold border-b pb-2">3. 中立演算法：共同 AI 不偏袒任何一方，核心目標為關係的長遠穩定與健康。</p>
+                    <p class="text-sm font-bold border-b pb-2">4. 退出權利：任何一方皆可隨時切斷 AI 之間的連動，並刪除關係記憶庫。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="mt-20 border-t border-gray-100 py-10 text-center text-gray-400 text-xs">
+    <p>© 2026 CAIOS Research Group. 致力於利用人類智慧與人工智慧重塑親密關係。</p>
+</footer>
+
+<script>
+    // Navigation Logic
+    function showSection(sectionId) {
+        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+        document.getElementById('section-' + sectionId).classList.remove('hidden');
+        
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById('nav-' + sectionId).classList.add('active');
+        
+        if (sectionId === 'dashboard') initChart();
+    }
+
+    // Chart Initialization
+    let healthChart;
+    function initChart() {
+        if (healthChart) return;
+        const ctx = document.getElementById('healthChart').getContext('2d');
+        healthChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['正向互動', '負面摩擦'],
+                datasets: [{
+                    data: [82, 18],
+                    backgroundColor: ['#86A789', '#E2A285'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    // A2A Simulation Logic
+    function addLog(msg, type = 'info') {
+        const container = document.getElementById('log-container');
+        const div = document.createElement('div');
+        const color = type === 'success' ? '#86A789' : (type === 'warn' ? '#E2A285' : (type === 'error' ? '#EF4444' : '#4ADE80'));
+        div.style.color = color;
+        div.innerHTML = `> [${new Date().toLocaleTimeString()}] ${msg}`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    let currentConflictRisk = 45;
+
+    function updateMetrics() {
+        const aEnergy = parseInt(document.getElementById('a-energy').value);
+        const aStress = parseInt(document.getElementById('a-stress').value);
+        const bEnergy = parseInt(document.getElementById('b-energy').value);
+        const bStress = parseInt(document.getElementById('b-stress').value);
+        const topic = document.getElementById('topic-select').value;
+
+        // UI Updates for Sliders
+        document.getElementById('a-energy-val').innerText = `${aEnergy}% ${aEnergy < 40 ? '(偏低)' : (aEnergy > 70 ? '(良好)' : '')}`;
+        document.getElementById('a-energy-val').className = `font-bold ${aEnergy < 40 ? 'text-orange-500' : 'text-green-600'}`;
+        
+        document.getElementById('a-stress-val').innerText = `${aStress}% ${aStress > 70 ? '(高)' : (aStress < 40 ? '(低)' : '')}`;
+        document.getElementById('a-stress-val').className = `font-bold ${aStress > 70 ? 'text-red-500' : 'text-gray-600'}`;
+        
+        document.getElementById('b-energy-val').innerText = `${bEnergy}%`;
+        document.getElementById('b-stress-val').innerText = `${bStress}%`;
+
+        // Calculate Dynamic Conflict Risk
+        // Base risk from stress and lack of energy
+        let risk = (aStress + bStress) * 0.35 + (100 - aEnergy) * 0.2 + (100 - bEnergy) * 0.2;
+        
+        // Context modifier based on topic
+        if (topic === 'finance' || topic === 'family') risk += 15; // Hard topics
+        if (topic === 'date') risk -= 10; // Positive topics
+        
+        risk = Math.max(5, Math.min(98, Math.round(risk)));
+        currentConflictRisk = risk;
+        
+        // Update Risk UI
+        const riskEl = document.getElementById('conflict-prob');
+        const cardEl = document.getElementById('conflict-card');
+        riskEl.innerText = `${risk}%`;
+        
+        cardEl.className = 'p-2 rounded transition-colors duration-300 border ';
+        if (risk >= 70) {
+            cardEl.classList.add('bg-red-50', 'border-red-200');
+            riskEl.classList.add('text-red-600');
+        } else if (risk >= 40) {
+            cardEl.classList.add('bg-orange-50', 'border-orange-200');
+            riskEl.classList.add('text-orange-600');
+        } else {
+            cardEl.classList.add('bg-blue-50', 'border-blue-200');
+            riskEl.classList.add('text-blue-600');
+        }
+    }
+
+    function simulateA2A() {
+        const inputA = document.getElementById('input-a').value;
+        const topic = document.getElementById('topic-select');
+        const topicText = topic.options[topic.selectedIndex].text;
+        
+        // Get current states
+        const aStress = parseInt(document.getElementById('a-stress').value);
+        const bStress = parseInt(document.getElementById('b-stress').value);
+        const aEnergy = parseInt(document.getElementById('a-energy').value);
+
+        if (!inputA) {
+            // Give a default simulation input if empty
+            document.getElementById('input-a').value = "我想討論一下我們這週末的時間安排...";
         }
 
-        function appendLog(elementId, text, color = '#333') {
-            const logBox = document.getElementById(elementId);
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.style.color = color;
-            entry.innerHTML = `[${getTimestamp()}] ${text}`;
-            logBox.appendChild(entry);
-            logBox.scrollTop = logBox.scrollHeight;
-        }
+        // Reset Log
+        document.getElementById('log-container').innerHTML = '';
+        addLog(`===== 啟動 A2A 同步 (主題: ${topicText}) =====`, "info");
+        document.getElementById('guidance-b').style.opacity = '0.5';
 
-        function triggerEventA() {
-            appendLog('log-a', '偵測到高壓狀態，啟動 Gottman 修復嘗試演算法...', '#8e44ad');
-            appendLog('log-a', '過濾防衛性詞彙，生成客觀意圖。', '#8e44ad');
+        setTimeout(() => {
+            addLog(`[Tier 1] 分析 A 狀態：壓力 ${aStress}%, 電量 ${aEnergy}%。`, "info");
+            
+            if (aStress > 70) {
+                addLog("識別到 A 處於高壓狀態。啟動高特曼軟化開場 (Softened Startup) 過濾...", "warn");
+            } else {
+                addLog("A 狀態平穩。提取核心意圖...", "success");
+            }
+            
             setTimeout(() => {
-                appendLog('log-a', '[A2A 發送] 狀態更新：A 今日過度疲倦，容忍度降低。', '#c0392b');
-                appendLog('log-a', '[A2A 發送] 請求：延遲今晚的預算規劃討論。', '#c0392b');
-                
-                // 模擬網路延遲傳遞給 Mediator
+                addLog(`[Tier 2] A2A 連線建立：向伴侶 B 代理發送加密狀態包...`, "info");
+
                 setTimeout(() => {
-                    appendLog('log-mediator', '[接收] 來自端點 A 的狀態更新與延遲請求。', '#d35400');
-                    appendLog('log-mediator', '[處理] 更新 Joint Memory Card，重新計算當日指引...', '#27ae60');
-                    document.getElementById('conflict-badge').innerText = '45% (留意)';
-                    document.getElementById('conflict-badge').className = 'status-badge badge-warning';
+                    addLog(`[Tier 3] 中介者計算：當前雙方綜合衝突預測率為 ${currentConflictRisk}%。`, currentConflictRisk > 70 ? "error" : "warn");
+
+                    // Dynamic Guidance Generation based on states
+                    let guidance = "";
+                    if (currentConflictRisk >= 70) {
+                         guidance = `「⚠️ 高衝突風險警告：A 試圖討論『${topicText}』，但目前雙方壓力/疲勞指數過高（預測衝突率 ${currentConflictRisk}%）。代理強烈建議：今晚暫緩此話題，改為提供靜默陪伴或點外賣，避免不必要的摩擦。」`;
+                         addLog("中介者介入：建議暫緩討論，已發送警示給 B。", "error");
+                    } else if (aStress > 70 && bStress <= 50) {
+                         guidance = `「💡 狀態提醒：A 目前處於高度疲憊狀態，且提出關於『${topicText}』的需求。您的狀態良好 (${bStress}% 壓力)，建議：主動接手今晚的家事，並使用肯定言語（A 的愛之語）給予安撫。」`;
+                         addLog("指引生成：B 狀態佳，建議 B 提供支援。", "success");
+                    } else if (aStress <= 50 && bStress > 70) {
+                         guidance = `「🛡️ 緩衝提醒：A 發起了『${topicText}』的對話，但您的壓力值較高 (${bStress}%)。代理已向 A 暗示您今天較累。建議您：溫和地回覆『我聽到了，我們明天精神好一點時好好討論好嗎？』」`;
+                         addLog("指引生成：保護 B 的邊界，建議延後討論。", "warn");
+                    } else {
+                         guidance = `「✨ 溝通綠燈：A 想討論『${topicText}』。目前雙方狀態皆適合對話。建議：保持開放心態，這是一個增進關係的好時機！」`;
+                         addLog("指引生成：雙方狀態良好，鼓勵正向溝通。", "success");
+                    }
+
+                    document.getElementById('guidance-b').innerText = guidance;
+                    document.getElementById('guidance-b').style.opacity = '1';
+                    document.getElementById('guidance-b').classList.add('text-gray-800');
+                    addLog("指引生成成功，已顯示於 B 終端。", "success");
                     
-                    // 模擬傳遞給 B
-                    setTimeout(() => {
-                        appendLog('log-b', '[A2A 接收] A 的狀態更新與延遲請求已抵達。', '#2980b9');
-                        appendLog('log-b', '[EFT 分析] 避免 B 產生被拒絕的焦慮，啟動重構 (Reframing)。', '#2980b9');
-                    }, 1500);
-                }, 1000);
-            }, 800);
-        }
+                    // Slightly update chart to reflect interaction
+                    if (healthChart) {
+                         let pos = healthChart.data.datasets[0].data[0];
+                         let neg = healthChart.data.datasets[0].data[1];
+                         if (currentConflictRisk > 70) neg += 2; else pos += 1;
+                         healthChart.data.datasets[0].data = [pos, neg];
+                         healthChart.update();
+                    }
 
-        function triggerEventB() {
-            appendLog('log-b', '向 B 顯示提示：「A 並非在逃避溝通，而是因疲憊需要喘息，建議將討論延至週末以確保品質。」', '#16a085');
-            appendLog('log-b', '生成行動建議：「今晚準備簡便晚餐，並給予 A 獨處空間。」', '#16a085');
-        }
+                }, 1200);
+            }, 1000);
+        }, 800);
+    }
 
-        function forceMediation() {
-            const scoreElement = document.getElementById('health-score');
-            let currentScore = parseInt(scoreElement.innerText);
-            let fluctuation = Math.floor(Math.random() * 7) - 3; // -3 to +3
-            let newScore = Math.min(100, Math.max(0, currentScore + fluctuation));
-            
-            scoreElement.innerText = newScore;
-            
-            if(newScore >= 80) scoreElement.style.color = '#2ecc71';
-            else if(newScore >= 60) scoreElement.style.color = '#f39c12';
-            else scoreElement.style.color = '#e74c3c';
-            
-            appendLog('log-mediator', `重新評估雙方互動詞彙... 新健康度評分：${newScore}`, '#2c3e50');
-        }
-    </script>
-</body>
-</html>
+    // Initialize metrics on load
+    window.addEventListener('DOMContentLoaded', () => {
+        updateMetrics();
+    });
